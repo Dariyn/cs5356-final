@@ -11,13 +11,14 @@ const roleUpdateSchema = z.object({
   }),
 });
 
-// Define the handler using the correct Next.js App Router pattern
-export async function PATCH(
-  request: NextRequest,
-  // Use the exact type that Next.js expects
-  context: { params: Record<string, string> }
-) {
-  const { id } = context.params;
+// Define the handler using only the request parameter
+export async function PATCH(request: NextRequest) {
+  // Extract the ID from the URL path
+  const url = new URL(request.url);
+  const pathSegments = url.pathname.split('/');
+  // Find the ID in the path (it's in the format /api/admin/users/[id]/role)
+  const idIndex = pathSegments.findIndex(segment => segment === 'users') + 1;
+  const id = pathSegments[idIndex] || '';
   try {
     const session = await getServerSession(authOptions);
     
