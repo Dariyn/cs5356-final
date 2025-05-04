@@ -9,6 +9,7 @@ interface CreateColumnButtonProps {
   variant?: "default" | "primary";
 }
 
+
 export default function CreateColumnButton({ boardId, variant = "default" }: CreateColumnButtonProps) {
   const router = useRouter();
   variant = "default";
