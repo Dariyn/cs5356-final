@@ -9,10 +9,8 @@ interface CreateColumnButtonProps {
   variant?: "default" | "primary";
 }
 
-
-export default function CreateColumnButton({ boardId, variant = "default" }: CreateColumnButtonProps) {
+export default function CreateColumnButton({ boardId, variant: _variant = "default" }: CreateColumnButtonProps) {
   const router = useRouter();
-  variant = "default";
   const [isAdding, setIsAdding] = useState(false);
   const [columnName, setColumnName] = useState("");
   const [isLoading, setIsLoading] = useState(false);

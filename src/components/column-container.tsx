@@ -38,10 +38,9 @@ interface ColumnContainerProps {
 
 export default function ColumnContainer({ 
   column, 
-  boardId,
+  boardId: _boardId, // Prefix with underscore to mark as intentionally unused
   isOverlay = false 
 }: ColumnContainerProps) {
-  boardId = boardId;
   const router = useRouter();
   const [isEditing, setIsEditing] = useState(false);
   const [columnName, setColumnName] = useState(column.name);
