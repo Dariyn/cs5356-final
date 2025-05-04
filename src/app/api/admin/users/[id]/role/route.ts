@@ -11,11 +11,13 @@ const roleUpdateSchema = z.object({
   }),
 });
 
+// Define the handler using the correct Next.js App Router pattern
 export async function PATCH(
-  req: NextRequest,
-  context: { params: { id: string } }
+  request: NextRequest,
+  // Use the exact type that Next.js expects
+  context: { params: Record<string, string> }
 ) {
-  const { params } = context;
+  const { id } = context.params;
   try {
     const session = await getServerSession(authOptions);
     
@@ -40,7 +42,7 @@ export async function PATCH(
       );
     }
     
-    const userId = parseInt(params.id);
+    const userId = parseInt(id);
     
     if (isNaN(userId)) {
       return NextResponse.json(
@@ -84,7 +86,7 @@ export async function PATCH(
       }
       
       // Validate and extract role from request body
-      const body = await req.json();
+      const body = await request.json();
       const result = roleUpdateSchema.safeParse(body);
       
       if (!result.success) {
