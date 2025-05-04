@@ -49,7 +49,7 @@ export default async function BoardsPage() {
       {userBoards.length === 0 ? (
         <div className="bg-white rounded-lg shadow-md p-8 text-center">
           <h3 className="text-lg font-semibold mb-2">No boards yet</h3>
-          <p className="text-gray-600 mb-6">
+          <p className="text-gray-800 mb-6">
             Create your first board to get started with task management
           </p>
           <CreateBoardButton userId={parseInt(session.user.id)} variant="primary" />
@@ -64,9 +64,9 @@ export default async function BoardsPage() {
             >
               <h3 className="text-lg font-semibold mb-2 truncate">{board.name}</h3>
               {board.description && (
-                <p className="text-gray-600 mb-4 line-clamp-2">{board.description}</p>
+                <p className="text-gray-800 mb-4 line-clamp-2">{board.description}</p>
               )}
-              <div className="text-sm text-gray-500">
+              <div className="text-sm text-gray-700">
                 Created {new Date(board.created_at).toLocaleDateString()}
               </div>
             </Link>

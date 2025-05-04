@@ -74,16 +74,16 @@ export default function UserList({ users, currentUserId }: UserListProps) {
         <table className="min-w-full divide-y divide-gray-200">
           <thead>
             <tr>
-              <th className="px-6 py-3 bg-gray-50 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+              <th className="px-6 py-3 bg-gray-50 text-left text-xs font-medium text-gray-700 uppercase tracking-wider">
                 Name
               </th>
-              <th className="px-6 py-3 bg-gray-50 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+              <th className="px-6 py-3 bg-gray-50 text-left text-xs font-medium text-gray-700 uppercase tracking-wider">
                 Email
               </th>
-              <th className="px-6 py-3 bg-gray-50 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+              <th className="px-6 py-3 bg-gray-50 text-left text-xs font-medium text-gray-700 uppercase tracking-wider">
                 Role
               </th>
-              <th className="px-6 py-3 bg-gray-50 text-right text-xs font-medium text-gray-500 uppercase tracking-wider">
+              <th className="px-6 py-3 bg-gray-50 text-right text-xs font-medium text-gray-700 uppercase tracking-wider">
                 Actions
               </th>
             </tr>
@@ -117,7 +117,7 @@ export default function UserList({ users, currentUserId }: UserListProps) {
                       Edit Role
                     </button>
                   ) : (
-                    <span className="text-gray-400">(Current User)</span>
+                    <span className="text-gray-600">(Current User)</span>
                   )}
                 </td>
               </tr>
@@ -134,7 +134,7 @@ export default function UserList({ users, currentUserId }: UserListProps) {
               Edit User Role: {selectedUser.email}
             </h2>
             <div className="mb-4">
-              <label className="block text-sm font-medium text-gray-700 mb-1">
+              <label className="block text-sm font-medium text-gray-800 mb-1">
                 Role
               </label>
               <select
@@ -149,7 +149,7 @@ export default function UserList({ users, currentUserId }: UserListProps) {
             <div className="flex justify-end space-x-3">
               <button
                 onClick={closeEditModal}
-                className="px-4 py-2 border border-gray-300 rounded-md shadow-sm text-sm font-medium text-gray-700 bg-white hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500"
+                className="px-4 py-2 border border-gray-300 rounded-md shadow-sm text-sm font-medium text-gray-800 bg-white hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500"
               >
                 Cancel
               </button>

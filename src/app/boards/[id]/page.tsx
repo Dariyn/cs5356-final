@@ -5,7 +5,7 @@ import pkg from 'pg';
 const { Client } = pkg;
 
 import BoardHeader from "@/components/board-header";
-import BoardColumns from "@/components/board-columns";
+import ClientDndProvider from "@/components/client-dnd-provider";
 
 type BoardPageProps = {
   params: { id: string };
@@ -17,12 +17,12 @@ export const fetchCache = 'force-no-store';
 export const dynamic = 'force-dynamic';
 export const revalidate = 0;
 
-export default async function BoardPage(props: BoardPageProps) {
-  // NextJS requires searchParams to be used to avoid the params.id warning
-  const id = props.params?.id;
+export default async function BoardPage({ params, searchParams }: BoardPageProps) {
+  // Fix params.id warning by properly destructuring at the function parameter level
+  const boardId = params?.id;
   
   // Safety check to ensure we have a valid ID
-  if (!id) {
+  if (!boardId) {
     redirect("/boards");
   }
 
@@ -32,7 +32,7 @@ export default async function BoardPage(props: BoardPageProps) {
     redirect("/login");
   }
   
-  console.log(`Loading board with ID: ${id}`);
+  console.log(`Loading board with ID: ${boardId}`);
   
   // Connect to PostgreSQL directly
   const connectionString = process.env.POSTGRES_URL || process.env.DATABASE_URL;
@@ -47,7 +47,7 @@ export default async function BoardPage(props: BoardPageProps) {
     // Get board details
     const boardResult = await client.query(
       `SELECT * FROM boards WHERE id = $1 AND user_id = $2`,
-      [id, session.user.id]
+      [boardId, session.user.id]
     );
     
     if (boardResult.rowCount === 0) {
@@ -60,7 +60,7 @@ export default async function BoardPage(props: BoardPageProps) {
     // Get columns with tasks
     const columnsResult = await client.query(
       `SELECT * FROM columns WHERE board_id = $1 ORDER BY position ASC`,
-      [id]
+      [boardId]
     );
     
     const columns = columnsResult.rows;
@@ -89,7 +89,7 @@ export default async function BoardPage(props: BoardPageProps) {
           board={board} 
         />
         
-        <BoardColumns 
+        <ClientDndProvider 
           board={boardWithColumns} 
         />
       </div>

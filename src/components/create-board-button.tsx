@@ -66,7 +66,7 @@ export default function CreateBoardButton({
         className={`px-4 py-2 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 ${
           variant === "primary"
             ? "bg-blue-600 text-white hover:bg-blue-700"
-            : "bg-white border border-gray-300 text-gray-700 hover:bg-gray-50"
+            : "bg-white border border-gray-300 text-gray-800 hover:bg-gray-50"
         }`}
       >
         Create Board
@@ -80,7 +80,7 @@ export default function CreateBoardButton({
               <div className="mb-4">
                 <label 
                   htmlFor="boardName" 
-                  className="block text-sm font-medium text-gray-700 mb-1"
+                  className="block text-sm font-medium text-gray-800 mb-1"
                 >
                   Board Name
                 </label>
@@ -89,7 +89,7 @@ export default function CreateBoardButton({
                   type="text"
                   value={boardName}
                   onChange={(e) => setBoardName(e.target.value)}
-                  className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+                  className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 text-gray-800"
                   placeholder="Enter board name"
                   required
                 />
@@ -97,7 +97,7 @@ export default function CreateBoardButton({
               <div className="mb-6">
                 <label 
                   htmlFor="boardDescription" 
-                  className="block text-sm font-medium text-gray-700 mb-1"
+                  className="block text-sm font-medium text-gray-800 mb-1"
                 >
                   Description (optional)
                 </label>
@@ -105,7 +105,7 @@ export default function CreateBoardButton({
                   id="boardDescription"
                   value={boardDescription}
                   onChange={(e) => setBoardDescription(e.target.value)}
-                  className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+                  className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 text-gray-800"
                   placeholder="Enter board description"
                   rows={3}
                 />
@@ -114,7 +114,7 @@ export default function CreateBoardButton({
                 <button
                   type="button"
                   onClick={() => setIsModalOpen(false)}
-                  className="px-4 py-2 border border-gray-300 rounded-md text-gray-700 hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2"
+                  className="px-4 py-2 border border-gray-300 rounded-md text-gray-800 hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2"
                 >
                   Cancel
                 </button>

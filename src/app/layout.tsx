@@ -26,16 +26,50 @@ export default function RootLayout({
   children: React.ReactNode;
 }>) {
   return (
-    <html lang="en">
+    <html lang="en" className="h-full">
       <body
-        className={`${geistSans.variable} ${geistMono.variable} antialiased bg-gray-50 min-h-screen`}
+        className={`${geistSans.variable} ${geistMono.variable} antialiased min-h-screen h-full`}
+        style={{
+          background: 'linear-gradient(120deg, #f0f6ff 0%, #f9f9f9 100%)',
+        }}
       >
         <AuthProvider>
           <Header />
-          <main className="max-w-7xl mx-auto py-6 px-4 sm:px-6 lg:px-8">
+          <main className="max-w-7xl mx-auto pb-12 pt-6 px-4 sm:px-6 lg:px-8">
             {children}
           </main>
-          <Toaster position="top-right" />
+          <Toaster 
+            position="top-right" 
+            toastOptions={{
+              style: {
+                background: '#FFFFFF',
+                color: '#374151',
+                boxShadow: '0 4px 6px rgba(0, 0, 0, 0.1)',
+                border: '1px solid #E5E7EB',
+                borderRadius: '0.5rem',
+              },
+              success: {
+                style: {
+                  borderLeft: '4px solid #10B981',
+                },
+              },
+              error: {
+                style: {
+                  borderLeft: '4px solid #EF4444',
+                },
+              },
+              info: {
+                style: {
+                  borderLeft: '4px solid #3B82F6',
+                },
+              },
+            }}
+          />
+          <footer className="border-t border-gray-200 mt-auto">
+            <div className="max-w-7xl mx-auto py-4 px-4 sm:px-6 lg:px-8 text-center text-gray-500 text-sm">
+              Kanban Board &copy; {new Date().getFullYear()} - A task management application
+            </div>
+          </footer>
         </AuthProvider>
       </body>
     </html>

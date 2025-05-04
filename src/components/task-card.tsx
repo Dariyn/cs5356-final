@@ -186,45 +186,55 @@ export default function TaskCard({ task, isOverlay = false }: TaskCardProps) {
     <div
       ref={taskRef}
       style={style}
-      className={`bg-white p-3 rounded-md shadow-sm cursor-grab border ${
-        task.is_completed 
-          ? "border-green-300 bg-green-50" 
-          : "border-gray-200"
-      } ${isOverlay ? "shadow-md opacity-70" : ""}`}
+      className={`
+        p-3 rounded-lg shadow-sm cursor-grab transition-all duration-200
+        ${task.is_completed 
+          ? "bg-green-50 border-l-4 border-green-500 border-t border-r border-b border-green-200" 
+          : "bg-white border-l-4 border-blue-400 border-t border-r border-b border-gray-200 hover:border-blue-300"}
+        ${isOverlay ? "shadow-lg opacity-90" : "hover:shadow-md"}
+      `}
       {...attributes}
       {...listeners}
       onClick={() => !isOverlay && !isDragging && setIsEditing(true)}
     >
       <div className="flex justify-between items-start">
         <div className="flex-1 mr-2">
-          <h3 className={`text-sm font-medium mb-1 ${task.is_completed ? "line-through text-gray-500" : ""}`}>
+          <h3 className={`text-sm font-medium mb-1 ${task.is_completed ? "line-through text-gray-500" : "text-gray-800"}`}>
             {task.title}
           </h3>
           {task.description && (
-            <p className="text-xs text-gray-600 line-clamp-2">
+            <p className="text-xs text-gray-600 line-clamp-2 mt-1">
               {task.description}
             </p>
           )}
         </div>
         
         {!isOverlay && (
-          <div className="flex flex-col gap-1">
+          <div className="flex flex-col gap-2">
             <button
               onClick={(e) => {
                 e.stopPropagation();
                 toggleCompletion();
               }}
-              className={`p-1 rounded-full ${
-                task.is_completed 
-                  ? "text-green-600 hover:bg-green-100" 
-                  : "text-gray-400 hover:bg-gray-100"
-              }`}
+              className={`
+                p-2 rounded-full transition-all duration-200
+                ${task.is_completed 
+                  ? "bg-green-100 text-green-600 hover:bg-green-200" 
+                  : "bg-gray-100 text-gray-400 hover:bg-blue-100 hover:text-blue-600"}
+              `}
               disabled={isLoading}
+              title={task.is_completed ? "Mark as incomplete" : "Mark as complete"}
             >
-              <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-                <polyline points="9 11 12 14 22 4"></polyline>
-                <path d="M21 12v7a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11"></path>
-              </svg>
+              {task.is_completed ? (
+                <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                  <path d="M12 22c5.523 0 10-4.477 10-10S17.523 2 12 2 2 6.477 2 12s4.477 10 10 10z"></path>
+                  <path d="m9 12 2 2 4-4"></path>
+                </svg>
+              ) : (
+                <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                  <path d="M12 22c5.523 0 10-4.477 10-10S17.523 2 12 2 2 6.477 2 12s4.477 10 10 10z"></path>
+                </svg>
+              )}
             </button>
             
             <button
@@ -232,14 +242,14 @@ export default function TaskCard({ task, isOverlay = false }: TaskCardProps) {
                 e.stopPropagation();
                 handleDelete();
               }}
-              className="p-1 text-gray-400 hover:text-red-600 hover:bg-gray-100 rounded-full"
+              className="p-2 bg-gray-100 text-gray-400 hover:bg-red-100 hover:text-red-600 rounded-full transition-all duration-200"
               disabled={isLoading}
+              title="Delete task"
             >
-              <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-                <polyline points="3 6 5 6 21 6"></polyline>
-                <path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"></path>
-                <line x1="10" y1="11" x2="10" y2="17"></line>
-                <line x1="14" y1="11" x2="14" y2="17"></line>
+              <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                <path d="M3 6h18"></path>
+                <path d="M19 6v14c0 1-1 2-2 2H7c-1 0-2-1-2-2V6"></path>
+                <path d="M8 6V4c0-1 1-2 2-2h4c1 0 2 1 2 2v2"></path>
               </svg>
             </button>
           </div>
@@ -247,10 +257,20 @@ export default function TaskCard({ task, isOverlay = false }: TaskCardProps) {
       </div>
       
       {task.due_date && (
-        <div className="mt-2 text-xs text-gray-500">
+        <div className="mt-2 text-xs flex items-center text-gray-500">
+          <svg xmlns="http://www.w3.org/2000/svg" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="mr-1">
+            <rect x="3" y="4" width="18" height="18" rx="2" ry="2"></rect>
+            <line x1="16" y1="2" x2="16" y2="6"></line>
+            <line x1="8" y1="2" x2="8" y2="6"></line>
+            <line x1="3" y1="10" x2="21" y2="10"></line>
+          </svg>
           Due: {new Date(task.due_date).toLocaleDateString()}
         </div>
       )}
+      
+      <div className="mt-2 text-xs text-gray-400">
+        ID: {task.id}
+      </div>
     </div>
   );
 } 

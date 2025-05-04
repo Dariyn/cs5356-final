@@ -142,10 +142,20 @@ export default function ColumnContainer({
     <div
       ref={columnRef}
       style={style}
-      className={`bg-gray-100 rounded-md w-[280px] h-fit max-h-full flex flex-col ${isOverlay ? "shadow-md opacity-70" : ""}`}
+      className={`
+        rounded-lg shadow-md w-[280px] h-fit max-h-full flex flex-col
+        bg-gradient-to-b from-gray-50 to-gray-100 border border-gray-200
+        ${isOverlay ? "opacity-80 ring-2 ring-blue-400" : ""}
+      `}
     >
       {/* Column Header */}
-      <div className="p-3 font-medium flex justify-between items-center bg-gray-200 rounded-t-md">
+      <div className={`
+        p-4 font-medium flex justify-between items-center rounded-t-lg
+        border-b border-gray-200 bg-white
+        ${column.name.toLowerCase() === 'to do' ? 'bg-blue-50' : 
+          column.name.toLowerCase() === 'in progress' ? 'bg-amber-50' : 
+          column.name.toLowerCase() === 'done' ? 'bg-green-50' : 'bg-white'}
+      `}>
         <div
           {...attributes}
           {...listeners}
@@ -165,36 +175,44 @@ export default function ColumnContainer({
                     setIsEditing(false);
                   }
                 }}
-                className="bg-white px-2 py-1 text-sm border rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 w-full"
+                className="bg-white px-3 py-2 text-sm border rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 w-full shadow-sm"
                 autoFocus
               />
             </div>
           ) : (
             <div 
-              className="text-sm font-semibold truncate" 
+              className="text-base font-semibold truncate cursor-pointer hover:text-blue-600 transition-colors" 
               onClick={() => !isOverlay && setIsEditing(true)}
             >
-              {column.name}
+              <span className={`
+                ${column.name.toLowerCase() === 'to do' ? 'text-blue-600' : 
+                  column.name.toLowerCase() === 'in progress' ? 'text-amber-600' : 
+                  column.name.toLowerCase() === 'done' ? 'text-green-600' : 'text-gray-700'}
+              `}>
+                {column.name}
+              </span>
+              <span className="ml-2 text-xs font-normal text-gray-500 bg-gray-100 px-2 py-1 rounded-full">
+                {column.tasks.length}
+              </span>
             </div>
           )}
         </div>
         {!isOverlay && (
           <button
             onClick={handleDeleteColumn}
-            className="text-gray-500 hover:text-red-600 p-1"
+            className="text-gray-400 hover:text-red-600 p-2 rounded-full hover:bg-red-50 transition-colors"
           >
             <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-              <polyline points="3 6 5 6 21 6"></polyline>
-              <path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"></path>
-              <line x1="10" y1="11" x2="10" y2="17"></line>
-              <line x1="14" y1="11" x2="14" y2="17"></line>
+              <path d="M3 6h18"></path>
+              <path d="M19 6v14c0 1-1 2-2 2H7c-1 0-2-1-2-2V6"></path>
+              <path d="M8 6V4c0-1 1-2 2-2h4c1 0 2 1 2 2v2"></path>
             </svg>
           </button>
         )}
       </div>
 
       {/* Tasks */}
-      <div className="flex-1 flex flex-col gap-2 p-2 overflow-y-auto max-h-[calc(100vh-220px)]">
+      <div className="flex-1 flex flex-col gap-3 p-3 overflow-y-auto max-h-[calc(100vh-220px)]">
         <SortableContext items={column.tasks.map(task => task.id)} strategy={verticalListSortingStrategy}>
           {column.tasks.map((task) => (
             <TaskCard key={task.id} task={task} />
@@ -202,9 +220,14 @@ export default function ColumnContainer({
         </SortableContext>
 
         {column.tasks.length === 0 && !isAddingTask && (
-          <p className="text-gray-500 text-sm text-center py-8">
-            No tasks in this column
-          </p>
+          <div className="bg-gray-50 border border-dashed border-gray-200 rounded-lg py-8 px-3 text-center">
+            <p className="text-gray-500 text-sm">
+              No tasks yet
+            </p>
+            <p className="text-gray-400 text-xs mt-1">
+              Add a task to get started
+            </p>
+          </div>
         )}
 
         {isAddingTask ? (
@@ -220,9 +243,9 @@ export default function ColumnContainer({
           !isOverlay && (
             <button
               onClick={() => setIsAddingTask(true)}
-              className="mt-2 w-full py-2 px-3 text-gray-500 bg-white rounded-md border border-gray-300 text-sm hover:bg-gray-50 flex items-center justify-center"
+              className="mt-2 w-full py-2 px-3 text-blue-600 bg-blue-50 hover:bg-blue-100 rounded-md border border-blue-200 text-sm font-medium transition-colors flex items-center justify-center"
             >
-              <svg className="w-4 h-4 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+              <svg className="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M12 6v6m0 0v6m0-6h6m-6 0H6"></path>
               </svg>
               Add Task
