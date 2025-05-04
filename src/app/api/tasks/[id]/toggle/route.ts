@@ -3,9 +3,6 @@ import { getServerSession } from "next-auth";
 import { authOptions } from "@/lib/auth";
 import pkg from 'pg';
 const { Client } = pkg;
-import { db } from "@/lib/db";
-import { tasks } from "@/lib/db/schema";
-import { eq } from "drizzle-orm";
 
 // Disable all caching for this route
 export const fetchCache = 'force-no-store';

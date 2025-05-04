@@ -1,6 +1,4 @@
 import { NextRequest, NextResponse } from "next/server";
-import { db } from "@/lib/db";
-import { users } from "@/lib/db/schema";
 import bcrypt from "bcryptjs";
 import { z } from "zod";
 import pkg from 'pg';
@@ -71,7 +69,7 @@ export async function POST(req: NextRequest) {
     
     // Return the newly created user (excluding password)
     const newUser = newUserResult.rows[0];
-    const { password: _, ...userWithoutPassword } = newUser;
+    const { password: _password, ...userWithoutPassword } = newUser;
     
     return NextResponse.json(
       { message: "User created successfully", user: userWithoutPassword },

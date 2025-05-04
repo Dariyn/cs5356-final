@@ -31,7 +31,7 @@ export default function LoginPage() {
       toast.success("Logged in successfully");
       router.push("/boards");
       router.refresh();
-    } catch (error) {
+    } catch (_error) {
       toast.error("Something went wrong");
     } finally {
       setIsLoading(false);
