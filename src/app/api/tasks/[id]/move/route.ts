@@ -8,12 +8,13 @@ const { Client } = pkg;
 export const dynamic = 'force-dynamic';
 export const fetchCache = 'force-no-store';
 
-export async function PATCH(
-  request: NextRequest,
-  context: { params: { id: string } }
-) {
+export async function PATCH(request: NextRequest) {
   try {
-    const id = context.params.id;
+    // Extract the ID from the URL path
+    const url = new URL(request.url);
+    const pathSegments = url.pathname.split('/');
+    const idIndex = pathSegments.findIndex(segment => segment === 'tasks') + 2; // changed from +1 to +2
+    const id = pathSegments[idIndex] || '';
     console.log(`Task move API called for task ID: ${id}`);
     
     const session = await getServerSession(authOptions);
