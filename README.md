@@ -1,36 +1,114 @@
-This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
+# Kanban Board Application
+
+A full-stack Kanban board application built with Next.js, featuring drag-and-drop functionality, user authentication, and role-based access control.
+
+## Features
+
+- **User Authentication**: Sign up, login, and profile management
+- **Kanban Boards**: Create and manage multiple boards
+- **Drag and Drop Interface**: Intuitive drag-and-drop for tasks and columns
+- **Task Management**: Create, edit, delete, and mark tasks as completed
+- **Role-Based Access Control**: Admin interface for managing users and permissions
+- **Responsive Design**: Works on desktop and mobile devices
+
+## Tech Stack
+
+- **Frontend**: React, Next.js, Tailwind CSS
+- **Backend**: Next.js API Routes
+- **Database**: PostgreSQL with Drizzle ORM
+- **Authentication**: NextAuth.js
+- **Drag and Drop**: dnd-kit
 
 ## Getting Started
 
-First, run the development server:
+### Prerequisites
+
+- Node.js (v18 or higher)
+- npm or pnpm
+- Docker and Docker Compose (for local PostgreSQL database)
+
+### Installation
+
+1. Clone the repository:
+
+```bash
+git clone <repository-url>
+cd kanban-board
+```
+
+2. Install dependencies:
+
+```bash
+npm install
+# or
+pnpm install
+```
+
+3. Set up environment variables:
+
+Create a `.env.local` file in the root directory with the following variables:
+
+```
+# Database
+DATABASE_URL=postgres://postgres:postgres@localhost:5432/kanban
+
+# NextAuth
+NEXTAUTH_URL=http://localhost:3000
+NEXTAUTH_SECRET=your-nextauth-secret-key
+```
+
+4. Start the PostgreSQL database:
+
+```bash
+npm run db:start
+```
+
+5. Generate and apply database migrations:
+
+```bash
+npm run db:generate
+npm run db:migrate
+```
+
+6. Start the development server:
 
 ```bash
 npm run dev
-# or
-yarn dev
-# or
-pnpm dev
-# or
-bun dev
 ```
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+7. Open your browser and navigate to `http://localhost:3000`
 
-You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
+## Deployment
 
-This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
+The application can be deployed to Vercel with a PostgreSQL database from providers like Neon or Supabase.
 
-## Learn More
+1. Create a Vercel account and connect your repository
+2. Set up environment variables on Vercel:
+   - `DATABASE_URL`: Your production database connection string
+   - `NEXTAUTH_URL`: Your application URL
+   - `NEXTAUTH_SECRET`: A secure random key (generate with `openssl rand -hex 32`)
+3. Deploy your application
 
-To learn more about Next.js, take a look at the following resources:
+## Project Structure
 
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
+```
+kanban-board/
+├── src/
+│   ├── app/              # Next.js app router
+│   │   ├── api/          # API routes
+│   │   ├── auth/         # Authentication pages
+│   │   ├── boards/       # Board pages
+│   │   └── admin/        # Admin interface
+│   ├── components/       # React components
+│   ├── lib/              # Utilities
+│   │   ├── db/           # Database models and connection
+│   │   └── auth.ts       # Authentication setup
+│   └── types/            # TypeScript definitions
+├── public/               # Static files
+├── drizzle/              # Drizzle migrations
+└── docker-compose.yml    # Docker setup for local development
+```
 
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js) - your feedback and contributions are welcome!
+## License
 
-## Deploy on Vercel
-
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
-
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
+This project is licensed under the MIT License.

@@ -1,0 +1,100 @@
+import { getServerSession } from "next-auth";
+import { authOptions } from "@/lib/auth";
+import { redirect } from "next/navigation";
+import pkg from 'pg';
+const { Client } = pkg;
+
+import BoardHeader from "@/components/board-header";
+import BoardColumns from "@/components/board-columns";
+
+type BoardPageProps = {
+  params: { id: string };
+  searchParams: Record<string, string | string[] | undefined>;
+};
+
+// Disable all caching for this route
+export const fetchCache = 'force-no-store';
+export const dynamic = 'force-dynamic';
+export const revalidate = 0;
+
+export default async function BoardPage(props: BoardPageProps) {
+  // NextJS requires searchParams to be used to avoid the params.id warning
+  const id = props.params?.id;
+  
+  // Safety check to ensure we have a valid ID
+  if (!id) {
+    redirect("/boards");
+  }
+
+  const session = await getServerSession(authOptions);
+  
+  if (!session?.user) {
+    redirect("/login");
+  }
+  
+  console.log(`Loading board with ID: ${id}`);
+  
+  // Connect to PostgreSQL directly
+  const connectionString = process.env.POSTGRES_URL || process.env.DATABASE_URL;
+  if (!connectionString) {
+    throw new Error("Database connection string is missing");
+  }
+  
+  const client = new Client({ connectionString });
+  await client.connect();
+  
+  try {
+    // Get board details
+    const boardResult = await client.query(
+      `SELECT * FROM boards WHERE id = $1 AND user_id = $2`,
+      [id, session.user.id]
+    );
+    
+    if (boardResult.rowCount === 0) {
+      await client.end();
+      redirect("/boards");
+    }
+    
+    const board = boardResult.rows[0];
+    
+    // Get columns with tasks
+    const columnsResult = await client.query(
+      `SELECT * FROM columns WHERE board_id = $1 ORDER BY position ASC`,
+      [id]
+    );
+    
+    const columns = columnsResult.rows;
+    
+    // For each column, get its tasks
+    const boardWithColumns = {
+      ...board,
+      columns: await Promise.all(
+        columns.map(async (column) => {
+          const tasksResult = await client.query(
+            `SELECT * FROM tasks WHERE column_id = $1 ORDER BY position ASC`,
+            [column.id]
+          );
+          
+          return {
+            ...column,
+            tasks: tasksResult.rows,
+          };
+        })
+      ),
+    };
+    
+    return (
+      <div className="space-y-6">
+        <BoardHeader 
+          board={board} 
+        />
+        
+        <BoardColumns 
+          board={boardWithColumns} 
+        />
+      </div>
+    );
+  } finally {
+    await client.end();
+  }
+} 
