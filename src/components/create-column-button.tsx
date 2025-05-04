@@ -9,7 +9,11 @@ interface CreateColumnButtonProps {
   variant?: "default" | "primary";
 }
 
-export default function CreateColumnButton({ boardId, variant: _variant = "default" }: CreateColumnButtonProps) {
+export default function CreateColumnButton({ 
+  boardId, 
+  // eslint-disable-next-line @typescript-eslint/no-unused-vars
+  variant = "default" 
+}: CreateColumnButtonProps) {
   const router = useRouter();
   const [isAdding, setIsAdding] = useState(false);
   const [columnName, setColumnName] = useState("");

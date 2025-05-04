@@ -38,7 +38,8 @@ interface ColumnContainerProps {
 
 export default function ColumnContainer({ 
   column, 
-  boardId: _boardId, // Prefix with underscore to mark as intentionally unused
+  // eslint-disable-next-line @typescript-eslint/no-unused-vars
+  boardId,
   isOverlay = false 
 }: ColumnContainerProps) {
   const router = useRouter();
