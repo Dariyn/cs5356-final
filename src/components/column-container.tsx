@@ -41,6 +41,7 @@ export default function ColumnContainer({
   boardId,
   isOverlay = false 
 }: ColumnContainerProps) {
+  boardId = boardId;
   const router = useRouter();
   const [isEditing, setIsEditing] = useState(false);
   const [columnName, setColumnName] = useState(column.name);
