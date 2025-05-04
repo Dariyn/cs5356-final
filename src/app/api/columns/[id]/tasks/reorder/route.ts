@@ -9,10 +9,7 @@ export const fetchCache = 'force-no-store';
 export const dynamic = 'force-dynamic';
 export const revalidate = 0;
 
-export async function PATCH(
-  request: NextRequest,
-  context: { params: { id: string } }
-) {
+export async function PATCH(request: NextRequest) {
   try {
     const session = await getServerSession(authOptions);
     
@@ -23,8 +20,11 @@ export async function PATCH(
       );
     }
     
-    // Fix the sync-dynamic-apis warning by accessing params through context destructuring
-    const columnId = parseInt(context.params.id);
+    // Extract the column ID from the URL path
+    const url = new URL(request.url);
+    const pathSegments = url.pathname.split('/');
+    const idIndex = pathSegments.findIndex(segment => segment === 'columns') + 2; // changed to +2
+    const columnId = parseInt(pathSegments[idIndex] || '0');
     
     if (isNaN(columnId)) {
       return NextResponse.json(
