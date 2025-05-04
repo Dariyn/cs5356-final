@@ -1,7 +1,6 @@
 "use client";
 
 import { useState } from "react";
-import { Board } from "@/lib/db";
 import { toast } from "sonner";
 import { useRouter } from "next/navigation";
 

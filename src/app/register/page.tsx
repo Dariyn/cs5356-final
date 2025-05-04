@@ -19,14 +19,8 @@ export default function RegisterPage() {
     try {
       const response = await fetch("/api/register", {
         method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify({
-          name,
-          email,
-          password,
-        }),
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ name, email, password }),
       });
 
       const data = await response.json();
@@ -39,6 +33,7 @@ export default function RegisterPage() {
       toast.success("Account created successfully");
       router.push("/login");
     } catch (error) {
+      console.error("Registration error:", error);
       toast.error("Something went wrong");
     } finally {
       setIsLoading(false);
@@ -107,4 +102,4 @@ export default function RegisterPage() {
       </div>
     </div>
   );
-} 
+}

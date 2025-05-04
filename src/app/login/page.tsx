@@ -32,6 +32,7 @@ export default function LoginPage() {
       router.push("/boards");
       router.refresh();
     } catch (error) {
+      console.error("Login error:", error);
       toast.error("Something went wrong");
     } finally {
       setIsLoading(false);
@@ -86,4 +87,4 @@ export default function LoginPage() {
       </div>
     </div>
   );
-} 
+}

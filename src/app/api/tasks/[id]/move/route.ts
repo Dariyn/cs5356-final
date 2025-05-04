@@ -1,7 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
 import { getServerSession } from "next-auth";
 import { authOptions } from "@/lib/auth";
-import { pg } from "@/lib/db";
 import pkg from 'pg';
 const { Client } = pkg;
 

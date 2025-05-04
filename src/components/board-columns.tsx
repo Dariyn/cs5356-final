@@ -20,7 +20,7 @@ import ColumnContainer from "@/components/column-container";
 import CreateColumnButton from "@/components/create-column-button";
 
 // Add interfaces to handle PostgreSQL snake_case field names
-interface BoardWithColumns {
+export interface BoardWithColumns {
   id: number;
   name: string;
   description?: string;
@@ -29,7 +29,7 @@ interface BoardWithColumns {
   columns: ColumnWithTasks[];
 }
 
-interface ColumnWithTasks {
+export interface ColumnWithTasks {
   id: number;
   name: string;
   position: number;
@@ -38,7 +38,7 @@ interface ColumnWithTasks {
   tasks: Task[];
 }
 
-interface Task {
+export interface Task {
   id: number;
   title: string;
   description?: string;
