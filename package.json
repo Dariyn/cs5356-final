@@ -16,6 +16,7 @@
     "db:push": "node ./scripts/db-push.js",
     "db:admin": "node ./scripts/db-admin.js",
     "db:studio": "drizzle-kit studio",
+    "db:studio:fix": "node ./scripts/launch-studio.js",
     "db:view": "node ./scripts/db-viewer.js"
   },
   "dependencies": {
