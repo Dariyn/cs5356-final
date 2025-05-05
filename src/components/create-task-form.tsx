@@ -70,7 +70,7 @@ export default function CreateTaskForm({
     <form onSubmit={handleSubmit} className="bg-white p-4 rounded-lg shadow-sm border border-blue-200">
       <div className="space-y-3">
         <div>
-          <label htmlFor="taskTitle" className="block text-sm font-medium text-gray-800 mb-1">
+          <label htmlFor="taskTitle" className="block text-sm font-medium text-black mb-1">
             Task Title
           </label>
           <input
@@ -78,28 +78,28 @@ export default function CreateTaskForm({
             type="text"
             value={title}
             onChange={(e) => setTitle(e.target.value)}
-            className="w-full px-3 py-2 text-sm border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 text-gray-800"
+            className="w-full px-3 py-2 text-sm border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 text-black"
             placeholder="Enter task title"
             required
           />
         </div>
         
         <div>
-          <label htmlFor="taskDescription" className="block text-sm font-medium text-gray-800 mb-1">
+          <label htmlFor="taskDescription" className="block text-sm font-medium text-black mb-1">
             Description
           </label>
           <textarea
             id="taskDescription"
             value={description}
             onChange={(e) => setDescription(e.target.value)}
-            className="w-full px-3 py-2 text-sm border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 text-gray-800"
+            className="w-full px-3 py-2 text-sm border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 text-black"
             placeholder="Add a description..."
             rows={2}
           />
         </div>
         
         <div>
-          <label htmlFor="dueDate" className="block text-sm font-medium text-gray-800 mb-1">
+          <label htmlFor="dueDate" className="block text-sm font-medium text-black mb-1">
             Due Date (optional)
           </label>
           <input
@@ -107,7 +107,7 @@ export default function CreateTaskForm({
             type="date"
             value={dueDate}
             onChange={(e) => setDueDate(e.target.value)}
-            className="w-full px-3 py-2 text-sm border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 text-gray-800"
+            className="w-full px-3 py-2 text-sm border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 text-black"
           />
         </div>
         

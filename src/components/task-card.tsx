@@ -183,18 +183,18 @@ export default function TaskCard({ task: initialTask, isOverlay = false, onDelet
             type="text"
             value={title}
             onChange={(e) => setTitle(e.target.value)}
-            className="w-full px-2 py-1 text-sm border rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+            className="w-full px-2 py-1 text-sm border rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 text-black"
             placeholder="Task title"
           />
           <textarea
             value={description}
             onChange={(e) => setDescription(e.target.value)}
-            className="w-full px-2 py-1 text-sm border rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+            className="w-full px-2 py-1 text-sm border rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 text-black"
             placeholder="Add a description..."
             rows={2}
           />
           <div className="flex flex-col space-y-1">
-            <label htmlFor="dueDate" className="text-xs text-gray-600 font-medium">
+            <label htmlFor="dueDate" className="text-xs text-black font-medium">
               Due Date
             </label>
             <input
@@ -202,7 +202,7 @@ export default function TaskCard({ task: initialTask, isOverlay = false, onDelet
               type="date"
               value={dueDate}
               onChange={(e) => setDueDate(e.target.value)}
-              className="w-full px-2 py-1 text-sm border rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+              className="w-full px-2 py-1 text-sm border rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 text-black"
             />
           </div>
           <div className="flex justify-end space-x-2">
