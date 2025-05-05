@@ -142,6 +142,30 @@ export default function BoardColumns({ board }: BoardColumnsProps) {
         // Get the task to move (we know it exists from checks above)
         const task = {...newColumns[sourceColumnIndex].tasks[taskIndex]};
         
+        // Find the target column index
+        const targetColumnIndex = newColumns.findIndex(col => col.id === newColumnId);
+        
+        // If target column doesn't exist, return original columns
+        if (targetColumnIndex === -1) {
+          return prevColumns;
+        }
+        
+        // Remove the task from the source column
+        newColumns[sourceColumnIndex].tasks.splice(taskIndex, 1);
+        
+        // Update positions in the source column
+        newColumns[sourceColumnIndex].tasks = newColumns[sourceColumnIndex].tasks.map((t, index) => ({
+          ...t,
+          position: index
+        }));
+        
+        // Add the task to the target column at the end
+        const newPosition = newColumns[targetColumnIndex].tasks.length;
+        task.column_id = newColumnId;
+        task.position = newPosition;
+        
+        newColumns[targetColumnIndex].tasks.push(task);
+        
         // Create a new task with updated column_id
         const updatedTask = {
           ...task,
@@ -212,46 +236,72 @@ export default function BoardColumns({ board }: BoardColumnsProps) {
         
         setColumns(updatedColumns);
         
-        // Update column positions in the database
         try {
-          await fetch(`/api/boards/${board.id}/columns/reorder`, {
+          // Get the updated column IDs in order
+          const updatedColumnIds = updatedColumns.map(col => col.id);
+          
+          const moveResponse = await fetch(`/api/boards/${board.id}/columns/reorder`, {
             method: "PATCH",
-            headers: { "Content-Type": "application/json" },
+            headers: { 
+              "Content-Type": "application/json"
+            },
             body: JSON.stringify({
-              columnIds: updatedColumns.map(col => col.id),
+              columnIds: updatedColumnIds
             }),
           });
+          
+          if (!moveResponse.ok) {
+            const errorData = await moveResponse.json();
+            throw new Error(errorData.message || "Failed to reorder columns");
+          }
+          
+          console.log(`Columns reordered successfully`);
+          toast.success("Column order saved");
+          
+          // Force a refresh for consistency
+          router.refresh();
         } catch (error) {
           console.error("Failed to update column positions:", error);
           toast.error("Failed to save column order");
+          
+          // Revert UI on error
+          router.refresh();
         }
       }
-    } else if (!activeId.startsWith("column-")) {
-      // We're dropping a task
+    }
+    // Handle task movement between columns
+    else if (!activeId.startsWith("column-") && overId.startsWith("column-")) {
       const taskId = parseInt(activeId);
+      const targetColumnId = parseInt(overId.replace("column-", ""));
       
-      if (overId.startsWith("column-")) {
-        // Dropped on a column - handle task movement between columns
-        const newColumnId = parseInt(overId.replace("column-", ""));
-        
-        console.log(`Task ${taskId} dropped onto column ${newColumnId} - sending API request to persist change`);
+      // Find the source column containing the task
+      let sourceColumnId: number | null = null;
+      let sourceColumnIndex = -1;
+      let taskIndex = -1;
+      
+      for (let i = 0; i < columns.length; i++) {
+        const column = columns[i];
+        const tIndex = column.tasks.findIndex(t => t.id === taskId);
+        if (tIndex !== -1) {
+          sourceColumnId = column.id;
+          sourceColumnIndex = i;
+          taskIndex = tIndex;
+          break;
+        }
+      }
+      
+      if (sourceColumnId !== null && sourceColumnId !== targetColumnId) {
+        console.log(`Moving task ${taskId} from column ${sourceColumnId} to column ${targetColumnId}...`);
         
         try {
-          // First ensure the UI was updated correctly by handleDragOver
-          // Then make the API call to persist in database
           const moveResponse = await fetch(`/api/tasks/${taskId}/move`, {
             method: "PATCH",
             headers: { 
-              "Content-Type": "application/json",
-              // Prevent caching
-              "Cache-Control": "no-cache, no-store, must-revalidate",
-              "Pragma": "no-cache"
+              "Content-Type": "application/json"
             },
             body: JSON.stringify({
-              columnId: newColumnId
+              columnId: targetColumnId
             }),
-            // Force revalidation
-            cache: "no-store"
           });
           
           if (!moveResponse.ok) {
@@ -259,113 +309,105 @@ export default function BoardColumns({ board }: BoardColumnsProps) {
             throw new Error(errorData.message || "Failed to move task");
           }
           
-          const responseData = await moveResponse.json();
-          console.log("Task move API response:", responseData);
-          
-          // Show success message
+          const data = await moveResponse.json();
+          console.log(`Task moved successfully:`, data);
           toast.success("Task moved successfully");
-          
-          // The following is critical: Force a complete page refresh to get fresh data
-          // This ensures the database state is reflected in the UI
-          setTimeout(() => {
-            router.refresh();
-          }, 100);
         } catch (error) {
-          console.error("Error moving task:", error);
+          console.error("Failed to move task:", error);
           toast.error("Failed to move task");
           
-          // Force refresh to revert UI to database state
-          setTimeout(() => {
-            router.refresh();
-          }, 100);
-        }
-      } else {
-        // Dropped on another task - reordering within column
-        const overTaskId = parseInt(overId);
-        
-        // Find which column each task belongs to
-        let sourceColumnId: number | null = null;
-        let targetColumnId: number | null = null;
-        let sourceIndex: number = -1;
-        let targetIndex: number = -1;
-        
-        for (const column of columns) {
-          const sIndex = column.tasks.findIndex(t => t.id === taskId);
-          const tIndex = column.tasks.findIndex(t => t.id === overTaskId);
-          
-          if (sIndex !== -1) {
-            sourceColumnId = column.id;
-            sourceIndex = sIndex;
-          }
-          
-          if (tIndex !== -1) {
-            targetColumnId = column.id;
-            targetIndex = tIndex;
-          }
-          
-          if (sourceColumnId !== null && targetColumnId !== null) break;
-        }
-        
-        if (sourceColumnId === targetColumnId && sourceIndex !== -1 && targetIndex !== -1) {
-          // Reordering within the same column
-          setColumns(columns => {
-            return columns.map(column => {
-              if (column.id === sourceColumnId) {
-                const newTasks = [...column.tasks];
-                const [movedTask] = newTasks.splice(sourceIndex, 1);
-                newTasks.splice(targetIndex, 0, movedTask);
-                
-                // Update positions
-                const updatedTasks = newTasks.map((task, index) => ({
-                  ...task,
-                  position: index,
-                }));
-                
-                return { ...column, tasks: updatedTasks };
-              }
-              return column;
-            });
-          });
-          
-          console.log(`Reordering tasks within column ${sourceColumnId}...`);
-          
-          try {
-            // Get the updated task IDs in order
-            const updatedColumn = columns.find(col => col.id === sourceColumnId);
-            if (updatedColumn) {
-              const taskIds = updatedColumn.tasks.map(t => t.id);
-              console.log(`Sending reorder request with task IDs: ${taskIds.join(', ')}`);
-              
-              const response = await fetch(`/api/columns/${sourceColumnId}/tasks/reorder`, {
-                method: "PATCH",
-                headers: { 
-                  "Content-Type": "application/json"
-                },
-                body: JSON.stringify({
-                  taskIds: taskIds // Make sure we send the actual task IDs array
-                }),
-              });
-              
-              if (!response.ok) {
-                const errorData = await response.json();
-                throw new Error(errorData.message || "Failed to reorder tasks");
-              }
-              
-              console.log(`Tasks reordered successfully in column ${sourceColumnId}`);
-              toast.success("Task order saved");
-              
-              // Force a refresh for consistency
-              router.refresh();
-            }
-          } catch (error) {
-            console.error("Failed to update task positions:", error);
-            toast.error("Failed to save task order");
-            
-            // Revert UI on error
-            router.refresh();
-          }
+          // Revert UI on error
+          router.refresh();
         }
       }
+    }
+    // Handle task reordering within the same column
+    else if (!activeId.startsWith("column-") && !overId.startsWith("column-")) {
+      const taskId = parseInt(activeId);
+      const overTaskId = parseInt(overId);
+      
+      // Find the columns containing these tasks
+      let sourceColumnId: number | null = null;
+      let targetColumnId: number | null = null;
+      let sourceIndex: number = -1;
+      let targetIndex: number = -1;
+      
+      for (const column of columns) {
+        const sIndex = column.tasks.findIndex(t => t.id === taskId);
+        const tIndex = column.tasks.findIndex(t => t.id === overTaskId);
+        
+        if (sIndex !== -1) {
+          sourceColumnId = column.id;
+          sourceIndex = sIndex;
+        }
+        
+        if (tIndex !== -1) {
+          targetColumnId = column.id;
+          targetIndex = tIndex;
+        }
+        
+        if (sourceColumnId !== null && targetColumnId !== null) break;
+      }
+      
+      if (sourceColumnId === targetColumnId && sourceIndex !== -1 && targetIndex !== -1) {
+        // Reordering within the same column
+        setColumns(columns => {
+          return columns.map(column => {
+            if (column.id === sourceColumnId) {
+              const newTasks = [...column.tasks];
+              const [movedTask] = newTasks.splice(sourceIndex, 1);
+              newTasks.splice(targetIndex, 0, movedTask);
+              
+              // Update positions
+              const updatedTasks = newTasks.map((task, index) => ({
+                ...task,
+                position: index,
+              }));
+              
+              return { ...column, tasks: updatedTasks };
+            }
+            return column;
+          });
+        });
+        
+        console.log(`Reordering tasks within column ${sourceColumnId}...`);
+        
+        try {
+          // Get the updated task IDs in order
+          const updatedColumn = columns.find(col => col.id === sourceColumnId);
+          if (updatedColumn) {
+            const taskIds = updatedColumn.tasks.map(t => t.id);
+            console.log(`Sending reorder request with task IDs: ${taskIds.join(', ')}`);
+            
+            const reorderResponse = await fetch(`/api/columns/${sourceColumnId}/tasks/reorder`, {
+              method: "PATCH",
+              headers: { 
+                "Content-Type": "application/json"
+              },
+              body: JSON.stringify({
+                taskIds: taskIds // Make sure we send the actual task IDs array
+              }),
+            });
+            
+            if (!reorderResponse.ok) {
+              const errorData = await reorderResponse.json();
+              throw new Error(errorData.message || "Failed to reorder tasks");
+            }
+            
+            console.log(`Tasks reordered successfully in column ${sourceColumnId}`);
+            toast.success("Task order saved");
+            
+            // Force a refresh for consistency
+            router.refresh();
+          }
+        } catch (error) {
+          console.error("Failed to update task positions:", error);
+          toast.error("Failed to save task order");
+          
+          // Revert UI on error
+          router.refresh();
+        }
+      }  
     }
   };
 
