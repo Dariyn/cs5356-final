@@ -23,12 +23,13 @@ interface TaskCardProps {
   isOverlay?: boolean;
 }
 
-export default function TaskCard({ task, isOverlay = false }: TaskCardProps) {
+export default function TaskCard({ task: initialTask, isOverlay = false }: TaskCardProps) {
   const router = useRouter();
   const [isEditing, setIsEditing] = useState(false);
-  const [title, setTitle] = useState(task.title);
-  const [description, setDescription] = useState(task.description || "");
+  const [title, setTitle] = useState(initialTask.title);
+  const [description, setDescription] = useState(initialTask.description || "");
   const [isLoading, setIsLoading] = useState(false);
+  const [task, setTask] = useState(initialTask);
   
   const {
     attributes,
@@ -127,8 +128,17 @@ export default function TaskCard({ task, isOverlay = false }: TaskCardProps) {
         throw new Error(data.message || "Failed to toggle task completion");
       }
       
+      // Get the updated task from the response
+      const data = await response.json();
+      const updatedTask = data.task;
+      
+      // Update the local state with the new task data
+      setTask(updatedTask);
+      
       toast.success(task.is_completed ? "Task marked as incomplete" : "Task marked as complete");
-      router.refresh();
+      
+      // We don't need to refresh the entire page anymore
+      // router.refresh();
     } catch (error) {
       console.error("Error toggling task completion:", error);
       toast.error("Failed to update task status");
