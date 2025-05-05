@@ -403,7 +403,7 @@ export default function BoardColumns({ board }: BoardColumnsProps) {
       onDragOver={handleDragOver}
       onDragEnd={handleDragEnd}
     >
-      <div className="flex h-full gap-4 items-start">
+      <div className="flex h-full gap-6 items-start">
         <SortableContext items={columns.map(col => `column-${col.id}`)} strategy={horizontalListSortingStrategy}>
           {columns.map((column) => (
             <ColumnContainer

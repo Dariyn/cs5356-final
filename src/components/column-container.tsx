@@ -145,7 +145,7 @@ export default function ColumnContainer({
       ref={columnRef}
       style={style}
       className={`
-        rounded-lg shadow-md w-[280px] h-fit max-h-full flex flex-col
+        rounded-lg shadow-md w-[350px] h-fit max-h-full flex flex-col
         bg-gradient-to-b from-gray-50 to-gray-100 border border-gray-200
         ${isOverlay ? "opacity-80 ring-2 ring-blue-400" : ""}
       `}

@@ -169,28 +169,6 @@ export default function TaskCard({ task: initialTask, isOverlay = false, onDelet
     }
   };
 
-  const sendEmailNotification = async () => {
-    setIsLoading(true);
-    
-    try {
-      const response = await fetch(`/api/tasks/${task.id}/email`, {
-        method: "POST",
-      });
-      
-      if (!response.ok) {
-        const data = await response.json();
-        throw new Error(data.message || "Failed to send email notification");
-      }
-      
-      toast.success("Email notification sent");
-    } catch (error) {
-      console.error("Error sending email notification:", error);
-      toast.error("Failed to send email notification");
-    } finally {
-      setIsLoading(false);
-    }
-  };
-
   const taskRef = isOverlay ? null : setNodeRef;
 
   if (isEditing && !isOverlay) {
@@ -301,21 +279,6 @@ export default function TaskCard({ task: initialTask, isOverlay = false, onDelet
                   <path d="M12 22c5.523 0 10-4.477 10-10S17.523 2 12 2 2 6.477 2 12s4.477 10 10 10z"></path>
                 </svg>
               )}
-            </button>
-            
-            <button
-              onClick={(e) => {
-                e.stopPropagation();
-                sendEmailNotification();
-              }}
-              className="p-2 bg-gray-100 text-gray-400 hover:bg-blue-100 hover:text-blue-600 rounded-full transition-all duration-200"
-              disabled={isLoading}
-              title="Send email notification"
-            >
-              <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-                <rect x="2" y="4" width="20" height="16" rx="2"></rect>
-                <path d="m22 7-8.97 5.7a1.94 1.94 0 0 1-2.06 0L2 7"></path>
-              </svg>
             </button>
             
             <button
