@@ -13,11 +13,12 @@ export const fetchCache = 'force-no-store';
 export const dynamic = 'force-dynamic';
 export const revalidate = 0;
 
-type AdminBoardPageProps = {
+type PageProps = {
   params: { id: string };
+  searchParams: { [key: string]: string | string[] | undefined };
 };
 
-export default async function AdminBoardPage({ params }: AdminBoardPageProps) {
+export default async function AdminBoardPage({ params, searchParams }: PageProps) {
   // Get the board ID from the URL
   const boardId = params?.id;
   

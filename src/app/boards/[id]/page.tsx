@@ -9,8 +9,9 @@ const { Client } = pkg;
 import BoardHeader from "@/components/board-header";
 import ClientDndProvider from "@/components/client-dnd-provider";
 
-type BoardPageProps = {
+type PageProps = {
   params: { id: string };
+  searchParams: { [key: string]: string | string[] | undefined };
 };
 
 // Disable all caching for this route
@@ -18,7 +19,7 @@ export const fetchCache = 'force-no-store';
 export const dynamic = 'force-dynamic';
 export const revalidate = 0;
 
-export default async function BoardPage({ params }: BoardPageProps) {
+export default async function BoardPage({ params, searchParams }: PageProps) {
   // Fix params.id warning by properly destructuring at the function parameter level
   const boardId = params?.id;
   
