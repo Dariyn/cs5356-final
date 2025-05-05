@@ -130,7 +130,7 @@ export default function UserList({ users, currentUserId }: UserListProps) {
       {isEditModalOpen && selectedUser && (
         <div className="fixed inset-0  flex items-center justify-center p-4 z-50">
           <div className="bg-white rounded-lg shadow-xl max-w-md w-full p-6">
-            <h2 className="text-lg font-semibold mb-4">
+            <h2 className="text-lg text-black font-semibold mb-4">
               Edit User Role: {selectedUser.email}
             </h2>
             <div className="mb-4">
@@ -140,7 +140,7 @@ export default function UserList({ users, currentUserId }: UserListProps) {
               <select
                 value={role}
                 onChange={(e) => setRole(e.target.value)}
-                className="mt-1 block w-full pl-3 pr-10 py-2 text-base border-gray-300 focus:outline-none focus:ring-blue-500 focus:border-blue-500 sm:text-sm rounded-md"
+                className="mt-1 block w-full pl-3 pr-10 py-2 text-black text-base border-gray-300 focus:outline-none focus:ring-blue-500 focus:border-blue-500 sm:text-sm rounded-md"
               >
                 <option value="user">User</option>
                 <option value="admin">Admin</option>
