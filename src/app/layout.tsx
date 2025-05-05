@@ -30,9 +30,6 @@ export default function RootLayout({
     <html lang="en" className="h-full">
       <body
         className={`${geistSans.variable} ${geistMono.variable} antialiased min-h-screen h-full`}
-        style={{
-          background: 'linear-gradient(120deg, #C4E1F6 0%, #FEEE91 100%)',
-        }}
       >
         <AuthProvider>
           <ThemeProvider>
