@@ -1,6 +1,5 @@
 {
   "buildCommand": "npm run build",
-  "ignoreCommand": "echo 'Skipping checks for maximum compatibility'",
   "installCommand": "npm install",
   "framework": "nextjs",
   "outputDirectory": ".next",
@@ -9,4 +8,4 @@
       "main": true
     }
   }
-} 
+}
