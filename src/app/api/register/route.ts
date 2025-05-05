@@ -28,12 +28,16 @@ export async function POST(req: NextRequest) {
     const connectionString = process.env.DATABASE_URL || process.env.POSTGRES_URL;
     if (!connectionString) throw new Error("Database URL missing");
 
-    console.log("Connecting to database...");
-    const client = new Client({ connectionString });
+    console.log("Register: Connecting to database...");
+    const client = new Client({ 
+      connectionString,
+      ssl: { rejectUnauthorized: false } // Important for Vercel deployment
+    });
     try {
       await client.connect();
+      console.log("Register: Database connection successful");
     } catch (error) {
-      console.error("Database connection error:", error);
+      console.error("Register: Database connection error:", error);
       throw new Error(`Failed to connect to database: ${(error as Error).message}`);
     }
 

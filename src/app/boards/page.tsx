@@ -26,10 +26,13 @@ export default async function BoardsPage() {
       throw new Error("Database connection string is missing");
     }
     
-    console.log("Connecting to database with connection string...");
-    const client = new Client({ connectionString });
+    console.log("Boards: Connecting to database with connection string...");
+    const client = new Client({ 
+      connectionString,
+      ssl: { rejectUnauthorized: false } // Important for Vercel deployment
+    });
     await client.connect();
-    console.log("Connected to database successfully");
+    console.log("Boards: Connected to database successfully");
     
     // Get user's boards - ensure we handle the ID correctly
     const userId = session.user.id;

@@ -36,8 +36,14 @@ export const authOptions: NextAuthOptions = {
             return null;
           }
           
-          const client = new Client({ connectionString });
+          console.log("Auth: Attempting to connect to database...");
+          const client = new Client({ 
+            connectionString,
+            ssl: { rejectUnauthorized: false } // Important for Vercel deployment
+          });
+          
           await client.connect();
+          console.log("Auth: Database connection successful");
           
           // Find user by email
           const result = await client.query(
