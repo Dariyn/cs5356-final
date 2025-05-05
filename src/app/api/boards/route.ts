@@ -8,7 +8,7 @@ const { Client } = pkg;
 const createBoardSchema = z.object({
   name: z.string().min(1).max(255),
   description: z.string().optional(),
-  userId: z.number().int().positive(),
+  userId: z.union([z.string(), z.number().int().positive()]), // Accept both string and number IDs
 });
 
 export async function POST(req: NextRequest) {
@@ -36,20 +36,31 @@ export async function POST(req: NextRequest) {
     const { name, description, userId } = result.data;
     
     // Verify that the user ID matches the session user
-    if (userId !== parseInt(session.user.id)) {
+    // Convert both to strings for comparison to handle both string and number IDs
+    const sessionUserId = session.user.id;
+    const requestUserId = String(userId);
+    
+    console.log("Boards API: Comparing user IDs", { sessionUserId, requestUserId });
+    
+    if (requestUserId !== sessionUserId) {
       return NextResponse.json(
         { message: "Unauthorized: Cannot create board for another user" },
         { status: 403 }
       );
     }
     
-    const connectionString = process.env.POSTGRES_URL || process.env.DATABASE_URL;
+    const connectionString = process.env.DATABASE_URL || process.env.POSTGRES_URL;
     if (!connectionString) {
       throw new Error("Database connection string is missing");
     }
     
-    const client = new Client({ connectionString });
+    console.log("Boards API: Connecting to database...");
+    const client = new Client({ 
+      connectionString,
+      ssl: { rejectUnauthorized: false } // Important for Vercel deployment
+    });
     await client.connect();
+    console.log("Boards API: Connected to database successfully");
     
     let newBoard = null;
     
