@@ -3,15 +3,23 @@
 import { useState } from "react";
 import { toast } from "sonner";
 
+// Hardcoded API key as requested
+const API_KEY = "eWkrS5ufCtCgDAWpI0tiVw==BdKXuxJSmE6BkULd";
+
 export default function InspirationalQuote() {
-  const [quote, setQuote] = useState<{ text: string; author: string } | null>(null);
+  const [quote, setQuote] = useState<{ quote: string; author: string } | null>(null);
   const [isLoading, setIsLoading] = useState(false);
 
   const fetchQuote = async () => {
     setIsLoading(true);
     try {
-      // Using the type.fit API for inspirational quotes
-      const response = await fetch("https://type.fit/api/quotes");
+      // Using the api-ninjas.com quotes API with hardcoded API key
+      const response = await fetch("https://api.api-ninjas.com/v1/quotes", {
+        headers: {
+          'X-Api-Key': API_KEY,
+          'Content-Type': 'application/json'
+        }
+      });
       
       if (!response.ok) {
         throw new Error("Failed to fetch quote");
@@ -19,16 +27,23 @@ export default function InspirationalQuote() {
       
       const data = await response.json();
       
-      // Select a random quote from the response
-      const randomQuote = data[Math.floor(Math.random() * data.length)];
-      
-      setQuote({
-        text: randomQuote.text,
-        author: randomQuote.author || "Unknown"
-      });
+      if (data && data.length > 0) {
+        setQuote({
+          quote: data[0].quote,
+          author: data[0].author
+        });
+      } else {
+        toast.error("No quotes returned from API");
+      }
     } catch (error) {
       console.error("Error fetching quote:", error);
       toast.error("Failed to fetch inspirational quote");
+      
+      // Set a fallback quote on error
+      setQuote({
+        quote: "The best preparation for tomorrow is doing your best today.",
+        author: "H. Jackson Brown Jr."
+      });
     } finally {
       setIsLoading(false);
     }
@@ -38,7 +53,7 @@ export default function InspirationalQuote() {
     <div className="text-center mt-4">
       {quote ? (
         <div className="py-2 px-4 bg-white rounded-lg shadow-sm max-w-2xl mx-auto">
-          <p className="text-gray-800 italic">"{quote.text}"</p>
+          <p className="text-gray-800 italic">"{quote.quote}"</p>
           <p className="text-gray-600 text-sm mt-1">- {quote.author}</p>
         </div>
       ) : (
