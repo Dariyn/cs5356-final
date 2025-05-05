@@ -76,7 +76,7 @@ export default async function BoardsPage() {
     return (
       <div>
         <div className="flex justify-between items-center mb-8">
-          <h1 className="text-2xl font-bold">My Boards</h1>
+          <h1 className="text-2xl font-bold text-black">My Boards</h1>
           <CreateBoardButton userId={session.user.id} />
         </div>
         
@@ -96,7 +96,7 @@ export default async function BoardsPage() {
                 href={`/boards/${board.id}`}
                 className="bg-white rounded-lg shadow-md p-6 hover:shadow-lg transition-shadow"
               >
-                <h3 className="text-lg font-semibold mb-2 truncate">{board.name}</h3>
+                <h3 className="text-lg font-semibold mb-2 truncate text-black">{board.name}</h3>
                 {board.description && (
                   <p className="text-gray-800 mb-4 line-clamp-2">{board.description}</p>
                 )}
