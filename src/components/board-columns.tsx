@@ -190,6 +190,11 @@ export default function BoardColumns({ board }: BoardColumnsProps) {
     // Return if no change
     if (activeId === overId) return;
     
+    // Clear any ghost copies by forcing a refresh after drag operations
+    const forceRefresh = () => {
+      setTimeout(() => router.refresh(), 100);
+    };
+    
     if (activeId.startsWith("column-") && overId.startsWith("column-")) {
       // Reordering columns
       const activeColumnId = parseInt(activeId.replace("column-", ""));
@@ -289,6 +294,10 @@ export default function BoardColumns({ board }: BoardColumnsProps) {
           const data = await moveResponse.json();
           console.log(`Task moved successfully:`, data);
           toast.success("Task moved successfully");
+          
+          // Force a refresh to ensure UI is in sync with the database
+          // and clear any ghost copies
+          forceRefresh();
         } catch (error) {
           console.error("Failed to move task:", error);
           toast.error("Failed to move task");
