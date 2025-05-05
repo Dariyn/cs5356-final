@@ -404,35 +404,37 @@ export default function BoardColumns({ board }: BoardColumnsProps) {
       onDragOver={handleDragOver}
       onDragEnd={handleDragEnd}
     >
-      <div className="flex h-full gap-4 items-start">
-        <SortableContext items={columns.map(col => `column-${col.id}`)} strategy={horizontalListSortingStrategy}>
-          {columns.map((column) => (
-            <ColumnContainer
-              key={column.id}
-              column={column}
-              boardId={board.id}
-            />
-          ))}
-        </SortableContext>
-        
-        <CreateColumnButton boardId={board.id} />
-        
-        <DragOverlay>
-          {activeColumn && (
-            <ColumnContainer
-              column={activeColumn}
-              boardId={board.id}
-              isOverlay
-            />
-          )}
-          {activeTask && (
-            <TaskCard
-              task={activeTask}
-              isOverlay
-            />
-          )}
-        </DragOverlay>
+      <div className="overflow-x-auto pb-4 md:pb-0" style={{ maxWidth: '100vw' }}>
+        <div className="flex h-full gap-4 items-start min-w-max md:min-w-0 p-1">
+          <SortableContext items={columns.map(col => `column-${col.id}`)} strategy={horizontalListSortingStrategy}>
+            {columns.map((column) => (
+              <ColumnContainer
+                key={column.id}
+                column={column}
+                boardId={board.id}
+              />
+            ))}
+          </SortableContext>
+          
+          <CreateColumnButton boardId={board.id} />
+          
+          <DragOverlay>
+            {activeColumn && (
+              <ColumnContainer
+                column={activeColumn}
+                boardId={board.id}
+                isOverlay
+              />
+            )}
+            {activeTask && (
+              <TaskCard
+                task={activeTask}
+                isOverlay
+              />
+            )}
+          </DragOverlay>
+        </div>
       </div>
     </DndContext>
   );
-} 
+}
