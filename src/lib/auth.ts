@@ -29,7 +29,7 @@ export const authOptions: NextAuthOptions = {
 
         try {
           // Using direct pg connection for reliability
-          const connectionString = process.env.POSTGRES_URL || process.env.DATABASE_URL;
+          const connectionString = process.env.DATABASE_URL || process.env.POSTGRES_URL;
           
           if (!connectionString) {
             console.error("Database connection string is missing");

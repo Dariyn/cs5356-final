@@ -17,23 +17,33 @@ export default function LoginPage() {
     setIsLoading(true);
 
     try {
+      console.log("Attempting to sign in with:", { email });
+      
       const result = await signIn("credentials", {
         email,
         password,
         redirect: false,
       });
 
+      console.log("Sign in result:", result);
+
       if (result?.error) {
-        toast.error("Invalid credentials");
+        console.error("Login failed:", result.error);
+        toast.error(`Login failed: ${result.error}`);
         return;
       }
 
       toast.success("Logged in successfully");
-      router.push("/boards");
-      router.refresh();
+      console.log("Login successful, redirecting to /boards");
+      
+      // Add a small delay before redirecting
+      setTimeout(() => {
+        router.push("/boards");
+        router.refresh();
+      }, 500);
     } catch (error) {
       console.error("Login error:", error);
-      toast.error("Something went wrong");
+      toast.error(`Something went wrong: ${error instanceof Error ? error.message : 'Unknown error'}`);
     } finally {
       setIsLoading(false);
     }

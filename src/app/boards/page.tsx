@@ -17,7 +17,7 @@ export default async function BoardsPage() {
   
   try {
     // Using direct pg connection for reliability
-    const connectionString = process.env.POSTGRES_URL || process.env.DATABASE_URL;
+    const connectionString = process.env.DATABASE_URL || process.env.POSTGRES_URL;
     
     if (!connectionString) {
       throw new Error("Database connection string is missing");
