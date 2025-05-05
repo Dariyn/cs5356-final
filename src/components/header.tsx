@@ -23,7 +23,9 @@ export default function Header() {
             href="/" 
             className="text-lg font-bold text-gray-900 hover:text-gray-700"
           >
-            Kanban Board
+              <div className="header-gradient rounded-md py-2 px-3 text-white">
+              Kanban Board
+            </div>          
           </Link>
         </div>
 
