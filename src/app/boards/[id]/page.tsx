@@ -9,15 +9,20 @@ const { Client } = pkg;
 import BoardHeader from "@/components/board-header";
 import ClientDndProvider from "@/components/client-dnd-provider";
 
+type BoardPageProps = {
+  params: { id: string };
+};
+
+// Disable all caching for this route
 export const fetchCache = 'force-no-store';
 export const dynamic = 'force-dynamic';
 export const revalidate = 0;
 
-// Use ts-expect-error to suppress the type error
-// @ts-expect-error - Next.js App Router types are not compatible
-export default async function BoardPage(props) {
-  const { params } = props;
-  const boardId = params.id;
+export default async function BoardPage({ params }: BoardPageProps) {
+  // Fix params.id warning by properly destructuring at the function parameter level
+  const boardId = params?.id;
+  
+  // Safety check to ensure we have a valid ID
   if (!boardId) {
     redirect("/boards");
   }

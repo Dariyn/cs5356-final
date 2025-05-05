@@ -7,6 +7,6 @@ export default {
   driver: 'pg',
   dialect: 'postgresql',
   dbCredentials: {
-    connectionString: process.env.DATABASE_URL || '',
+    connectionString: process.env.DATABASE_URL || process.env.POSTGRES_URL || '',
   },
 } as Config;

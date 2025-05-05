@@ -3,6 +3,8 @@ import { getServerSession } from "next-auth";
 import { authOptions } from "@/lib/auth";
 import pkg from 'pg';
 const { Client } = pkg;
+// Remove the unused import
+// import { pg } from "@/lib/db";
 
 // Prevent Next.js from caching this route
 export const dynamic = 'force-dynamic';

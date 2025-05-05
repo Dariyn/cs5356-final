@@ -48,10 +48,10 @@ export default async function AdminPage() {
   
   return (
     <div>
-      <h1 className="text-2xl font-bold mb-8">Admin Dashboard</h1>
+      <h1 className="text-2xl font-bold mb-8 text-gray-900">Admin Dashboard</h1>
       
       <div className="bg-white p-6 rounded-lg shadow-sm">
-        <h2 className="text-lg font-semibold mb-4">User Management</h2>
+        <h2 className="text-lg font-semibold mb-4 text-gray-900">User Management</h2>
         <UserList users={allUsers} currentUserId={parseInt(session.user.id)} />
       </div>
     </div>

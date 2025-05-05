@@ -125,4 +125,4 @@ export default async function BoardsPage() {
   }
 
   // No duplicate return statement needed - it's already in the try block
-} 
+}
