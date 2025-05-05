@@ -18,7 +18,6 @@ import { SortableContext, horizontalListSortingStrategy } from "@dnd-kit/sortabl
 import TaskCard from "@/components/task-card";
 import ColumnContainer from "@/components/column-container";
 import CreateColumnButton from "@/components/create-column-button";
-import TaskSearch from "@/components/task-search";
 
 // Add interfaces to handle PostgreSQL snake_case field names
 export interface BoardWithColumns {
@@ -48,7 +47,6 @@ export interface Task {
   created_at?: Date | string;
   due_date?: Date | string;
   is_completed: boolean;
-  priority?: string;
 }
 
 interface BoardColumnsProps {
@@ -74,29 +72,6 @@ export default function BoardColumns({ board }: BoardColumnsProps) {
       },
     })
   );
-
-  // Get all tasks across all columns for search functionality
-  const allTasks = columns.reduce((acc, column) => {
-    return [...acc, ...column.tasks];
-  }, [] as Task[]);
-
-  // Function to scroll to a task when clicked in search
-  const handleTaskClick = (taskId: number, columnId: number) => {
-    // Find the task element by ID and scroll to it
-    const taskElement = document.getElementById(`task-${taskId}`);
-    const columnElement = document.getElementById(`column-${columnId}`);
-    
-    if (taskElement) {
-      taskElement.scrollIntoView({ behavior: 'smooth', block: 'center' });
-      taskElement.classList.add('highlight-task');
-      setTimeout(() => {
-        taskElement.classList.remove('highlight-task');
-      }, 2000);
-    } else if (columnElement) {
-      // If we can't find the task, at least scroll to the column
-      columnElement.scrollIntoView({ behavior: 'smooth' });
-    }
-  };
 
   // Handle beginning of drag operations
   const handleDragStart = (event: DragStartEvent) => {
@@ -266,7 +241,7 @@ export default function BoardColumns({ board }: BoardColumnsProps) {
           toast.success("Column order saved");
           
           // Force a refresh for consistency
-          forceRefresh();
+          router.refresh();
         } catch (error) {
           console.error("Failed to update column positions:", error);
           toast.error("Failed to save column order");
@@ -301,29 +276,6 @@ export default function BoardColumns({ board }: BoardColumnsProps) {
         console.log(`Moving task ${taskId} from column ${sourceColumnId} to column ${targetColumnId}...`);
         
         try {
-          // Optimistically update the UI
-          const updatedColumns = [...columns];
-          const taskToMove = { ...updatedColumns[sourceColumnIndex].tasks[taskIndex] };
-          
-          // Remove from source column
-          updatedColumns[sourceColumnIndex].tasks.splice(taskIndex, 1);
-          
-          // Find target column index
-          const targetColumnIndex = updatedColumns.findIndex(col => col.id === targetColumnId);
-          
-          // Update task with new column_id and position
-          const updatedTask = {
-            ...taskToMove,
-            column_id: targetColumnId,
-            position: updatedColumns[targetColumnIndex].tasks.length
-          };
-          
-          // Add to target column
-          updatedColumns[targetColumnIndex].tasks.push(updatedTask);
-          
-          // Update state
-          setColumns(updatedColumns);
-          
           const moveResponse = await fetch(`/api/tasks/${taskId}/move`, {
             method: "PATCH",
             headers: { 
@@ -365,23 +317,19 @@ export default function BoardColumns({ board }: BoardColumnsProps) {
       let targetColumnId: number | null = null;
       let sourceIndex: number = -1;
       let targetIndex: number = -1;
-      let columnIndex: number = -1;
       
-      for (let i = 0; i < columns.length; i++) {
-        const column = columns[i];
+      for (const column of columns) {
         const sIndex = column.tasks.findIndex(t => t.id === taskId);
         const tIndex = column.tasks.findIndex(t => t.id === overTaskId);
         
         if (sIndex !== -1) {
           sourceColumnId = column.id;
           sourceIndex = sIndex;
-          columnIndex = i;
         }
         
         if (tIndex !== -1) {
           targetColumnId = column.id;
           targetIndex = tIndex;
-          if (columnIndex === -1) columnIndex = i;
         }
         
         if (sourceColumnId !== null && targetColumnId !== null) break;
@@ -389,45 +337,55 @@ export default function BoardColumns({ board }: BoardColumnsProps) {
       
       if (sourceColumnId === targetColumnId && sourceIndex !== -1 && targetIndex !== -1) {
         // Reordering within the same column
-        const updatedColumns = [...columns];
-        const tasksCopy = [...updatedColumns[columnIndex].tasks];
-        const [movedTask] = tasksCopy.splice(sourceIndex, 1);
-        tasksCopy.splice(targetIndex, 0, movedTask);
+        setColumns(columns => {
+          return columns.map(column => {
+            if (column.id === sourceColumnId) {
+              const newTasks = [...column.tasks];
+              const [movedTask] = newTasks.splice(sourceIndex, 1);
+              newTasks.splice(targetIndex, 0, movedTask);
+              
+              // Update positions
+              const updatedTasks = newTasks.map((task, index) => ({
+                ...task,
+                position: index,
+              }));
+              
+              return { ...column, tasks: updatedTasks };
+            }
+            return column;
+          });
+        });
         
-        // Update positions
-        const updatedTasks = tasksCopy.map((task, index) => ({
-          ...task,
-          position: index,
-        }));
-        
-        updatedColumns[columnIndex].tasks = updatedTasks;
-        setColumns(updatedColumns);
+        console.log(`Reordering tasks within column ${sourceColumnId}...`);
         
         try {
           // Get the updated task IDs in order
-          const taskIds = updatedTasks.map(t => t.id);
-          console.log(`Sending reorder request with task IDs: ${taskIds.join(', ')}`);
-          
-          const reorderResponse = await fetch(`/api/columns/${sourceColumnId}/tasks/reorder`, {
-            method: "PATCH",
-            headers: { 
-              "Content-Type": "application/json"
-            },
-            body: JSON.stringify({
-              taskIds: taskIds
-            }),
-          });
-          
-          if (!reorderResponse.ok) {
-            const errorData = await reorderResponse.json();
-            throw new Error(errorData.message || "Failed to reorder tasks");
+          const updatedColumn = columns.find(col => col.id === sourceColumnId);
+          if (updatedColumn) {
+            const taskIds = updatedColumn.tasks.map(t => t.id);
+            console.log(`Sending reorder request with task IDs: ${taskIds.join(', ')}`);
+            
+            const reorderResponse = await fetch(`/api/columns/${sourceColumnId}/tasks/reorder`, {
+              method: "PATCH",
+              headers: { 
+                "Content-Type": "application/json"
+              },
+              body: JSON.stringify({
+                taskIds: taskIds // Make sure we send the actual task IDs array
+              }),
+            });
+            
+            if (!reorderResponse.ok) {
+              const errorData = await reorderResponse.json();
+              throw new Error(errorData.message || "Failed to reorder tasks");
+            }
+            
+            console.log(`Tasks reordered successfully in column ${sourceColumnId}`);
+            toast.success("Task order saved");
+            
+            // Force a refresh for consistency
+            router.refresh();
           }
-          
-          console.log(`Tasks reordered successfully in column ${sourceColumnId}`);
-          toast.success("Task order saved");
-          
-          // Force a refresh for consistency
-          forceRefresh();
         } catch (error) {
           console.error("Failed to update task positions:", error);
           toast.error("Failed to save task order");
@@ -440,63 +398,41 @@ export default function BoardColumns({ board }: BoardColumnsProps) {
   };
 
   return (
-    <div>
-      {/* Add the search bar and actions row */}
-      <div className="flex justify-between items-center mb-4">
-        <div className="flex items-center space-x-3">
-          <button
-            onClick={() => router.refresh()}
-            className="p-2 rounded-md bg-gray-100 dark:bg-gray-700 hover:bg-gray-200 dark:hover:bg-gray-600 text-gray-700 dark:text-gray-300"
-            aria-label="Refresh board"
-          >
-            <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-              <path d="M21 12a9 9 0 0 0-9-9 9.75 9.75 0 0 0-6.74 2.74L3 8"></path>
-              <path d="M3 3v5h5"></path>
-              <path d="M3 12a9 9 0 0 0 9 9 9.75 9.75 0 0 0 6.74-2.74L21 16"></path>
-              <path d="M16 21h5v-5"></path>
-            </svg>
-          </button>
-        </div>
+    <DndContext
+      sensors={sensors}
+      onDragStart={handleDragStart}
+      onDragOver={handleDragOver}
+      onDragEnd={handleDragEnd}
+    >
+      <div className="flex h-full gap-4 items-start">
+        <SortableContext items={columns.map(col => `column-${col.id}`)} strategy={horizontalListSortingStrategy}>
+          {columns.map((column) => (
+            <ColumnContainer
+              key={column.id}
+              column={column}
+              boardId={board.id}
+            />
+          ))}
+        </SortableContext>
         
-        <TaskSearch tasks={allTasks} onTaskClick={handleTaskClick} />
+        <CreateColumnButton boardId={board.id} />
+        
+        <DragOverlay>
+          {activeColumn && (
+            <ColumnContainer
+              column={activeColumn}
+              boardId={board.id}
+              isOverlay
+            />
+          )}
+          {activeTask && (
+            <TaskCard
+              task={activeTask}
+              isOverlay
+            />
+          )}
+        </DragOverlay>
       </div>
-      
-      <DndContext
-        sensors={sensors}
-        onDragStart={handleDragStart}
-        onDragOver={handleDragOver}
-        onDragEnd={handleDragEnd}
-      >
-        <div className="overflow-x-auto pb-4 md:pb-0" style={{ maxWidth: '100vw' }}>
-          <div className="flex h-full gap-4 items-start min-w-max md:min-w-0 p-1">
-            <SortableContext items={columns.map(col => `column-${col.id}`)} strategy={horizontalListSortingStrategy}>
-              {columns.map((column) => (
-                <ColumnContainer
-                  key={column.id}
-                  column={column}
-                  boardId={board.id}
-                />
-              ))}
-            </SortableContext>
-            
-            <DragOverlay>
-              {activeColumn && (
-                <ColumnContainer
-                  column={activeColumn}
-                  boardId={board.id}
-                  isOverlay
-                />
-              )}
-              {activeTask && (
-                <TaskCard
-                  task={activeTask}
-                  isOverlay
-                />
-              )}
-            </DragOverlay>
-          </div>
-        </div>
-      </DndContext>
-    </div>
+    </DndContext>
   );
-}
+} 

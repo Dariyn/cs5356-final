@@ -1,31 +1,8 @@
 @import "tailwindcss";
 
 :root {
-  --kanban-blue: #C4E1F6;
-  --kanban-yellow: #FEEE91;
-  --kanban-orange: #FFBD73;
-  --kanban-deep-orange: #FF9D3D;
   --background: #ffffff;
   --foreground: #171717;
-  --card-background: #ffffff;
-  --card-border: #e5e7eb;
-  --card-shadow: rgba(0, 0, 0, 0.1);
-}
-
-.dark {
-  --background: #0f172a;
-  --foreground: #f1f5f9;
-  --card-background: #1e293b;
-  --card-border: #334155;
-  --card-shadow: rgba(0, 0, 0, 0.3);
-}
-
-html {
-  color-scheme: light;
-}
-
-html.dark {
-  color-scheme: dark;
 }
 
 @theme inline {
@@ -35,11 +12,17 @@ html.dark {
   --font-mono: var(--font-geist-mono);
 }
 
+@media (prefers-color-scheme: dark) {
+  :root {
+    --background: #0a0a0a;
+    --foreground: #ededed;
+  }
+}
+
 body {
   background: var(--background);
   color: var(--foreground);
   font-family: Arial, Helvetica, sans-serif;
-  transition: background-color 0.3s ease, color 0.3s ease;
 }
 
 /* Animated gradient banner in header */
@@ -58,31 +41,4 @@ body {
   100% {
     background-position: 0% 50%;
   }
-}
-
-/* Task highlighting animation for search results */
-@keyframes highlight-pulse {
-  0% {
-    box-shadow: 0 0 0 0 rgba(59, 130, 246, 0.7);
-    transform: scale(1);
-  }
-  50% {
-    box-shadow: 0 0 0 10px rgba(59, 130, 246, 0);
-    transform: scale(1.03);
-  }
-  100% {
-    box-shadow: 0 0 0 0 rgba(59, 130, 246, 0);
-    transform: scale(1);
-  }
-}
-
-.highlight-task {
-  animation: highlight-pulse 2s ease-out;
-  z-index: 10;
-  position: relative;
-}
-
-.dark .highlight-task {
-  animation: highlight-pulse 2s ease-out;
-  box-shadow: 0 0 0 4px rgba(96, 165, 250, 0.5);
 }

@@ -82,15 +82,6 @@ export default async function BoardPage({ params, searchParams }: PageProps) {
     return (
       <div className="space-y-6">
         <BoardHeader board={board} />
-        <div className="md:hidden text-center text-sm text-gray-500 mb-2 flex items-center justify-center">
-          <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="mr-1">
-            <polyline points="15 18 9 12 15 6"></polyline>
-          </svg>
-          <span>Scroll horizontally to view all columns</span>
-          <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="ml-1">
-            <polyline points="9 18 15 12 9 6"></polyline>
-          </svg>
-        </div>
         <ClientDndProvider board={boardWithColumns} />
       </div>
     );
