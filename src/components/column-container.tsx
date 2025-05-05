@@ -229,29 +229,14 @@ export default function ColumnContainer({
               key={task.id} 
               task={task} 
               onDelete={(taskId) => {
-                // Call the API to delete the task
-                fetch(`/api/tasks/${taskId}`, {
-                  method: 'DELETE',
-                })
-                .then(response => {
-                  if (response.ok) {
-                    // If the API call was successful, update the UI without a page refresh
-                    if (onRemoveTask) {
-                      onRemoveTask(taskId);
-                    } else {
-                      // Fallback to router refresh if onRemoveTask is not provided
-                      router.refresh();
-                    }
-                    toast.success("Task deleted successfully");
-                  } else {
-                    throw new Error("Failed to delete task");
-                  }
-                })
-                .catch(error => {
-                  console.error("Error deleting task:", error);
-                  toast.error("Failed to delete task");
-                  router.refresh(); // Refresh on error to ensure UI is in sync
-                });
+                // The API call is already handled in the TaskCard component
+                // Just update the UI without making another API call
+                if (onRemoveTask) {
+                  onRemoveTask(taskId);
+                } else {
+                  // Fallback to router refresh if onRemoveTask is not provided
+                  router.refresh();
+                }
               }}
               onUpdate={(updatedTask) => {
                 // If the onUpdateTask prop is provided, use it to update the UI without a page refresh
