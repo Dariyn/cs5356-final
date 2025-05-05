@@ -48,7 +48,7 @@ export default function ColumnContainer({
   const [columnName, setColumnName] = useState(column.name);
   const [isAddingTask, setIsAddingTask] = useState(false);
   const [columnTasks, setColumnTasks] = useState(column.tasks);
-  const columnRef = useRef<HTMLDivElement>(null);
+  const visibilityRef = useRef<HTMLDivElement>(null);
   const [isVisible, setIsVisible] = useState(false);
   
   // Set up droppable for column highlight
@@ -83,7 +83,7 @@ export default function ColumnContainer({
 
   // Create an intersection observer for fade-in effect
   useEffect(() => {
-    if (!columnRef.current || isOverlay) return;
+    if (!visibilityRef.current || isOverlay) return;
     
     const observer = new IntersectionObserver(
       ([entry]) => {
@@ -97,11 +97,11 @@ export default function ColumnContainer({
       }
     );
     
-    observer.observe(columnRef.current);
+    observer.observe(visibilityRef.current);
     
     return () => {
-      if (columnRef.current) {
-        observer.unobserve(columnRef.current);
+      if (visibilityRef.current) {
+        observer.unobserve(visibilityRef.current);
       }
     };
   }, [isOverlay]);
@@ -169,8 +169,9 @@ export default function ColumnContainer({
     }
   };
 
-  const columnRef = !isOverlay ? setNodeRef : null;
-  const tasksContainer = !isOverlay ? setDroppableRef : null;
+  // Handle refs differently for overlay vs. normal mode
+  let columnRef = setNodeRef;
+  let tasksContainer = setDroppableRef;
 
   // Determine column colors based on name
   const getColumnColor = (name: string) => {
@@ -186,7 +187,7 @@ export default function ColumnContainer({
   
   return (
     <div
-      ref={columnRef}
+      ref={isOverlay ? null : columnRef}
       style={style}
       className={`
         rounded-lg shadow-md w-[280px] h-fit max-h-full flex flex-col
@@ -260,7 +261,7 @@ export default function ColumnContainer({
 
       {/* Tasks */}
       <div 
-        ref={tasksContainer}
+        ref={isOverlay ? null : tasksContainer}
         className={`
           flex-1 flex flex-col gap-3 p-3 overflow-y-auto max-h-[calc(100vh-220px)]
           ${isOver ? 'bg-opacity-70 transition-colors duration-200' : 'bg-opacity-100'}
