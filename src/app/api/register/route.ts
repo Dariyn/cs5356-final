@@ -67,7 +67,7 @@ export async function POST(req: NextRequest) {
     
     // Provide more detailed error information
     let errorMessage = "Something went wrong";
-    let details = (err as Error).message;
+    const details = (err as Error).message;
     
     // Check for specific error types
     if (details.includes("duplicate key")) {
