@@ -32,6 +32,7 @@ interface Task {
   created_at?: Date | string;
   due_date?: Date | string;
   is_completed: boolean;
+  priority?: string;
 }
 
 interface BoardHeaderProps {

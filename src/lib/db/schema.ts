@@ -36,6 +36,7 @@ export const tasks = pgTable('tasks', {
   createdAt: timestamp('created_at').defaultNow(),
   dueDate: timestamp('due_date'),
   isCompleted: boolean('is_completed').default(false),
+  priority: varchar('priority', { length: 20 }).default('medium'),
 });
 
 export const boardRelations = relations(boards, ({ one, many }) => ({

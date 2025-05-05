@@ -18,6 +18,7 @@ import { SortableContext, horizontalListSortingStrategy } from "@dnd-kit/sortabl
 import TaskCard from "@/components/task-card";
 import ColumnContainer from "@/components/column-container";
 import CreateColumnButton from "@/components/create-column-button";
+import TaskSearch from "@/components/task-search";
 
 // Add interfaces to handle PostgreSQL snake_case field names
 export interface BoardWithColumns {
@@ -47,6 +48,7 @@ export interface Task {
   created_at?: Date | string;
   due_date?: Date | string;
   is_completed: boolean;
+  priority?: string;
 }
 
 interface BoardColumnsProps {
@@ -72,6 +74,29 @@ export default function BoardColumns({ board }: BoardColumnsProps) {
       },
     })
   );
+
+  // Get all tasks across all columns for search functionality
+  const allTasks = columns.reduce((acc, column) => {
+    return [...acc, ...column.tasks];
+  }, [] as Task[]);
+
+  // Function to scroll to a task when clicked in search
+  const handleTaskClick = (taskId: number, columnId: number) => {
+    // Find the task element by ID and scroll to it
+    const taskElement = document.getElementById(`task-${taskId}`);
+    const columnElement = document.getElementById(`column-${columnId}`);
+    
+    if (taskElement) {
+      taskElement.scrollIntoView({ behavior: 'smooth', block: 'center' });
+      taskElement.classList.add('highlight-task');
+      setTimeout(() => {
+        taskElement.classList.remove('highlight-task');
+      }, 2000);
+    } else if (columnElement) {
+      // If we can't find the task, at least scroll to the column
+      columnElement.scrollIntoView({ behavior: 'smooth' });
+    }
+  };
 
   // Handle beginning of drag operations
   const handleDragStart = (event: DragStartEvent) => {
@@ -398,43 +423,65 @@ export default function BoardColumns({ board }: BoardColumnsProps) {
   };
 
   return (
-    <DndContext
-      sensors={sensors}
-      onDragStart={handleDragStart}
-      onDragOver={handleDragOver}
-      onDragEnd={handleDragEnd}
-    >
-      <div className="overflow-x-auto pb-4 md:pb-0" style={{ maxWidth: '100vw' }}>
-        <div className="flex h-full gap-4 items-start min-w-max md:min-w-0 p-1">
-          <SortableContext items={columns.map(col => `column-${col.id}`)} strategy={horizontalListSortingStrategy}>
-            {columns.map((column) => (
-              <ColumnContainer
-                key={column.id}
-                column={column}
-                boardId={board.id}
-              />
-            ))}
-          </SortableContext>
-          
-          <CreateColumnButton boardId={board.id} />
-          
-          <DragOverlay>
-            {activeColumn && (
-              <ColumnContainer
-                column={activeColumn}
-                boardId={board.id}
-                isOverlay
-              />
-            )}
-            {activeTask && (
-              <TaskCard
-                task={activeTask}
-                isOverlay
-              />
-            )}
-          </DragOverlay>
+    <div>
+      {/* Add the search bar and actions row */}
+      <div className="flex justify-between items-center mb-4">
+        <div className="flex items-center space-x-3">
+          <button
+            onClick={() => router.refresh()}
+            className="p-2 rounded-md bg-gray-100 dark:bg-gray-700 hover:bg-gray-200 dark:hover:bg-gray-600 text-gray-700 dark:text-gray-300"
+            aria-label="Refresh board"
+          >
+            <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+              <path d="M21 12a9 9 0 0 0-9-9 9.75 9.75 0 0 0-6.74 2.74L3 8"></path>
+              <path d="M3 3v5h5"></path>
+              <path d="M3 12a9 9 0 0 0 9 9 9.75 9.75 0 0 0 6.74-2.74L21 16"></path>
+              <path d="M16 21h5v-5"></path>
+            </svg>
+          </button>
         </div>
+        
+        <TaskSearch tasks={allTasks} onTaskClick={handleTaskClick} />
       </div>
-    </DndContext>
+      
+      <DndContext
+        sensors={sensors}
+        onDragStart={handleDragStart}
+        onDragOver={handleDragOver}
+        onDragEnd={handleDragEnd}
+      >
+        <div className="overflow-x-auto pb-4 md:pb-0" style={{ maxWidth: '100vw' }}>
+          <div className="flex h-full gap-4 items-start min-w-max md:min-w-0 p-1">
+            <SortableContext items={columns.map(col => `column-${col.id}`)} strategy={horizontalListSortingStrategy}>
+              {columns.map((column) => (
+                <ColumnContainer
+                  key={column.id}
+                  column={column}
+                  boardId={board.id}
+                />
+              ))}
+            </SortableContext>
+            
+            <CreateColumnButton boardId={board.id} />
+            
+            <DragOverlay>
+              {activeColumn && (
+                <ColumnContainer
+                  column={activeColumn}
+                  boardId={board.id}
+                  isOverlay
+                />
+              )}
+              {activeTask && (
+                <TaskCard
+                  task={activeTask}
+                  isOverlay
+                />
+              )}
+            </DragOverlay>
+          </div>
+        </div>
+      </DndContext>
+    </div>
   );
 }

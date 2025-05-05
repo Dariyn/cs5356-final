@@ -28,6 +28,7 @@ interface Task {
   created_at?: Date | string;
   due_date?: Date | string;
   is_completed: boolean;
+  priority?: string;
 }
 
 interface ColumnContainerProps {
@@ -142,22 +143,23 @@ export default function ColumnContainer({
 
   return (
     <div
+      id={`column-${column.id}`}
       ref={columnRef}
       style={style}
       className={`
         rounded-lg shadow-md flex flex-col
         w-[270px] sm:w-[280px] h-[500px] max-h-[70vh] overflow-hidden
-        bg-gradient-to-b from-gray-50 to-gray-100 border border-gray-200
+        bg-gradient-to-b from-gray-50 to-gray-100 dark:from-gray-800 dark:to-gray-900 border border-gray-200 dark:border-gray-700
         ${isOverlay ? "opacity-80 ring-2 ring-blue-400" : ""}
       `}
     >
       {/* Column Header */}
       <div className={`
         p-4 font-medium flex justify-between items-center rounded-t-lg
-        border-b border-gray-200 bg-white
-        ${column.name.toLowerCase() === 'to do' ? 'bg-blue-50' : 
-          column.name.toLowerCase() === 'in progress' ? 'bg-amber-50' : 
-          column.name.toLowerCase() === 'done' ? 'bg-green-50' : 'bg-white'}
+        border-b border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-800
+        ${column.name.toLowerCase() === 'to do' ? 'bg-blue-50 dark:bg-blue-900' : 
+          column.name.toLowerCase() === 'in progress' ? 'bg-amber-50 dark:bg-amber-900' : 
+          column.name.toLowerCase() === 'done' ? 'bg-green-50 dark:bg-green-900' : 'bg-white dark:bg-gray-800'}
       `}>
         <div
           {...attributes}
@@ -178,23 +180,23 @@ export default function ColumnContainer({
                     setIsEditing(false);
                   }
                 }}
-                className="bg-white px-3 py-2 text-sm border rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 w-full shadow-sm"
+                className="bg-white dark:bg-gray-700 px-3 py-2 text-sm border dark:border-gray-600 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 w-full shadow-sm dark:text-white"
                 autoFocus
               />
             </div>
           ) : (
             <div 
-              className="text-base font-semibold truncate cursor-pointer hover:text-blue-600 transition-colors" 
+              className="text-base font-semibold truncate cursor-pointer hover:text-blue-600 dark:hover:text-blue-400 transition-colors" 
               onClick={() => !isOverlay && setIsEditing(true)}
             >
               <span className={`
-                ${column.name.toLowerCase() === 'to do' ? 'text-blue-600' : 
-                  column.name.toLowerCase() === 'in progress' ? 'text-amber-600' : 
-                  column.name.toLowerCase() === 'done' ? 'text-green-600' : 'text-gray-700'}
+                ${column.name.toLowerCase() === 'to do' ? 'text-blue-600 dark:text-blue-400' : 
+                  column.name.toLowerCase() === 'in progress' ? 'text-amber-600 dark:text-amber-400' : 
+                  column.name.toLowerCase() === 'done' ? 'text-green-600 dark:text-green-400' : 'text-gray-700 dark:text-gray-300'}
               `}>
                 {column.name}
               </span>
-              <span className="ml-2 text-xs font-normal text-gray-500 bg-gray-100 px-2 py-1 rounded-full">
+              <span className="ml-2 text-xs font-normal text-gray-500 dark:text-gray-400 bg-gray-100 dark:bg-gray-700 px-2 py-1 rounded-full">
                 {column.tasks.length}
               </span>
             </div>
@@ -236,11 +238,11 @@ export default function ColumnContainer({
         </SortableContext>
 
         {columnTasks.length === 0 && !isAddingTask && (
-          <div className="bg-gray-50 border border-dashed border-gray-200 rounded-lg py-8 px-3 text-center">
-            <p className="text-gray-500 text-sm">
+          <div className="bg-gray-50 dark:bg-gray-800 border border-dashed border-gray-200 dark:border-gray-700 rounded-lg py-8 px-3 text-center">
+            <p className="text-gray-500 dark:text-gray-400 text-sm">
               No tasks yet
             </p>
-            <p className="text-gray-400 text-xs mt-1">
+            <p className="text-gray-400 dark:text-gray-500 text-xs mt-1">
               Add a task to get started
             </p>
           </div>

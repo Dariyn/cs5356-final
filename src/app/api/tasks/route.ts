@@ -10,6 +10,7 @@ const createTaskSchema = z.object({
   description: z.string().optional(),
   column_id: z.number().int().positive(),
   due_date: z.string().optional(),
+  priority: z.string().optional(),
 });
 
 export async function POST(req: NextRequest) {
@@ -86,10 +87,10 @@ export async function POST(req: NextRequest) {
       
       // Create the task
       const newTaskResult = await client.query(
-        `INSERT INTO tasks (title, description, column_id, position, due_date, is_completed)
-         VALUES ($1, $2, $3, $4, $5, $6)
+        `INSERT INTO tasks (title, description, column_id, position, due_date, is_completed, priority)
+         VALUES ($1, $2, $3, $4, $5, $6, $7)
          RETURNING *`,
-        [title, description, column_id, newPosition, due_date ? new Date(due_date) : null, false]
+        [title, description, column_id, newPosition, due_date ? new Date(due_date) : null, false, result.data.priority || 'medium']
       );
       
       const newTask = newTaskResult.rows[0];
