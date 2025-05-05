@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useRef, useEffect } from "react";
 import { toast } from "sonner";
 import { useRouter } from "next/navigation";
 import {
@@ -53,45 +53,80 @@ interface BoardColumnsProps {
   board: BoardWithColumns;
 }
 
+// Check if we're in a browser environment
+const isBrowser = typeof window !== 'undefined';
+
 export default function BoardColumns({ board }: BoardColumnsProps) {
   const router = useRouter();
   const [columns, setColumns] = useState(board.columns);
   const [activeColumn, setActiveColumn] = useState<ColumnWithTasks | null>(null);
   const [activeTask, setActiveTask] = useState<Task | null>(null);
+  const columnsContainerRef = useRef<HTMLDivElement>(null);
+  const [isDraggingAnyItem, setIsDraggingAnyItem] = useState(false);
   
-  const sensors = useSensors(
-    useSensor(MouseSensor, {
-      activationConstraint: {
-        distance: 10,
-      },
-    }),
-    useSensor(TouchSensor, {
-      activationConstraint: {
-        delay: 250,
-        tolerance: 5,
-      },
-    })
-  );
-
-  // Handle beginning of drag operations
+  // Configure sensors for drag detection
+  const mouseSensor = useSensor(MouseSensor, {
+    // Lower the activation distance to improve responsiveness
+    activationConstraint: {
+      distance: 5,
+    },
+  });
+  
+  const touchSensor = useSensor(TouchSensor, {
+    // Increase delay for touch devices to prevent accidental drags
+    activationConstraint: {
+      delay: 100,
+      tolerance: 5,
+    },
+  });
+  
+  const sensors = useSensors(mouseSensor, touchSensor);
+  
+  // Setup horizontal scroll with mouse wheel
+  useEffect(() => {
+    if (!columnsContainerRef.current || !isBrowser) return;
+    
+    const container = columnsContainerRef.current;
+    
+    const handleWheel = (e: WheelEvent) => {
+      if (e.deltaY === 0) return;
+      
+      // Prevent default behavior (vertical scroll)
+      e.preventDefault();
+      
+      // Scroll horizontally (use deltaY for horizontal scroll)
+      container.scrollLeft += e.deltaY;
+    };
+    
+    container.addEventListener('wheel', handleWheel, { passive: false });
+    
+    return () => {
+      container.removeEventListener('wheel', handleWheel);
+    };
+  }, []);
+  
   const handleDragStart = (event: DragStartEvent) => {
+    setIsDraggingAnyItem(true);
     const { active } = event;
     const activeId = active.id.toString();
     
-    // Check if we're dragging a column
+    // If we're dragging a column
     if (activeId.startsWith("column-")) {
       const columnId = parseInt(activeId.replace("column-", ""));
-      const column = columns.find((col) => col.id === columnId);
-      if (column) setActiveColumn(column);
+      const column = columns.find(col => col.id === columnId);
+      if (column) {
+        setActiveColumn({ ...column });
+      }
     } 
-    // Otherwise we're dragging a task
+    // If we're dragging a task
     else {
       const taskId = parseInt(activeId);
-      // Find the task in one of the columns
+      
+      // Find the task in all columns
       for (const column of columns) {
-        const task = column.tasks.find((t) => t.id === taskId);
+        const task = column.tasks.find(t => t.id === taskId);
         if (task) {
-          setActiveTask(task);
+          setActiveTask({ ...task });
           break;
         }
       }
@@ -204,6 +239,7 @@ export default function BoardColumns({ board }: BoardColumnsProps) {
     // Reset active items
     setActiveColumn(null);
     setActiveTask(null);
+    setIsDraggingAnyItem(false);
     
     if (!over) return;
     
@@ -222,103 +258,94 @@ export default function BoardColumns({ board }: BoardColumnsProps) {
       const activeColumnIndex = columns.findIndex(col => col.id === activeColumnId);
       const overColumnIndex = columns.findIndex(col => col.id === overColumnId);
       
-      if (activeColumnIndex !== -1 && overColumnIndex !== -1) {
-        // Create new array with reordered columns
-        const newColumns = [...columns];
-        const [movedColumn] = newColumns.splice(activeColumnIndex, 1);
-        newColumns.splice(overColumnIndex, 0, movedColumn);
+      if (activeColumnIndex === -1 || overColumnIndex === -1) return;
+      
+      // Create new version of columns array with reordered columns
+      const newColumns = [...columns];
+      
+      // Remove the active column
+      const [activeColumn] = newColumns.splice(activeColumnIndex, 1);
+      
+      // Insert it at the new position
+      newColumns.splice(overColumnIndex, 0, activeColumn);
+      
+      // Update positions
+      const updatedColumns = newColumns.map((col, index) => ({
+        ...col,
+        position: index,
+      }));
+      
+      // Update state with the new order
+      setColumns(updatedColumns);
+      
+      try {
+        // Update column positions in the database
+        const response = await fetch(`/api/boards/${board.id}/columns/reorder`, {
+          method: "PATCH",
+          headers: {
+            "Content-Type": "application/json",
+          },
+          body: JSON.stringify({
+            columns: updatedColumns.map(col => ({
+              id: col.id,
+              position: col.position,
+            })),
+          }),
+        });
         
-        // Update positions
-        const updatedColumns = newColumns.map((col, index) => ({
-          ...col,
-          position: index,
-        }));
-        
-        setColumns(updatedColumns);
-        
-        try {
-          // Get the updated column IDs in order
-          const updatedColumnIds = updatedColumns.map(col => col.id);
-          
-          const moveResponse = await fetch(`/api/boards/${board.id}/columns/reorder`, {
-            method: "PATCH",
-            headers: { 
-              "Content-Type": "application/json"
-            },
-            body: JSON.stringify({
-              columnIds: updatedColumnIds
-            }),
-          });
-          
-          if (!moveResponse.ok) {
-            const errorData = await moveResponse.json();
-            throw new Error(errorData.message || "Failed to reorder columns");
-          }
-          
-          console.log(`Columns reordered successfully`);
-          toast.success("Column order saved");
-          
-          // Force a refresh for consistency
-          router.refresh();
-        } catch (error) {
-          console.error("Failed to update column positions:", error);
-          toast.error("Failed to save column order");
-          
-          // Revert UI on error
-          router.refresh();
+        if (!response.ok) {
+          throw new Error("Failed to update column positions");
         }
+        
+        console.log("Column positions updated successfully");
+      } catch (error) {
+        console.error("Error updating column positions:", error);
+        // Revert to original order if update fails
+        setColumns(columns);
+        toast.error("Failed to update column positions");
       }
     }
-    // Handle task movement between columns
+    // Handle moving a task between columns
     else if (!activeId.startsWith("column-") && overId.startsWith("column-")) {
+      // Task was already moved in handleDragOver, just need to save to DB
       const taskId = parseInt(activeId);
-      const targetColumnId = parseInt(overId.replace("column-", ""));
+      const newColumnId = parseInt(overId.replace("column-", ""));
       
-      // Find the source column containing the task
-      let sourceColumnId: number | null = null;
-      let sourceColumnIndex = -1;
-      let taskIndex = -1;
-      
-      for (let i = 0; i < columns.length; i++) {
-        const column = columns[i];
-        const tIndex = column.tasks.findIndex(t => t.id === taskId);
-        if (tIndex !== -1) {
-          sourceColumnId = column.id;
-          sourceColumnIndex = i;
-          taskIndex = tIndex;
-          break;
-        }
-      }
-      
-      if (sourceColumnId !== null && sourceColumnId !== targetColumnId) {
-        console.log(`Moving task ${taskId} from column ${sourceColumnId} to column ${targetColumnId}...`);
-        
-        try {
-          const moveResponse = await fetch(`/api/tasks/${taskId}/move`, {
-            method: "PATCH",
-            headers: { 
-              "Content-Type": "application/json"
-            },
-            body: JSON.stringify({
-              columnId: targetColumnId
-            }),
-          });
-          
-          if (!moveResponse.ok) {
-            const errorData = await moveResponse.json();
-            throw new Error(errorData.message || "Failed to move task");
+      try {
+        // Find the task's new position in the destination column
+        let taskPosition = -1;
+        for (const column of columns) {
+          if (column.id === newColumnId) {
+            const taskIndex = column.tasks.findIndex(t => t.id === taskId);
+            if (taskIndex !== -1) {
+              taskPosition = taskIndex;
+            }
+            break;
           }
-          
-          const data = await moveResponse.json();
-          console.log(`Task moved successfully:`, data);
-          toast.success("Task moved successfully");
-        } catch (error) {
-          console.error("Failed to move task:", error);
-          toast.error("Failed to move task");
-          
-          // Revert UI on error
-          router.refresh();
         }
+        
+        // Update the task in the database
+        const response = await fetch(`/api/tasks/${taskId}/move`, {
+          method: "PATCH",
+          headers: {
+            "Content-Type": "application/json",
+          },
+          body: JSON.stringify({
+            columnId: newColumnId,
+            position: taskPosition,
+          }),
+        });
+        
+        if (!response.ok) {
+          throw new Error("Failed to move task to new column");
+        }
+        
+        console.log(`Task ${taskId} moved to column ${newColumnId}`);
+      } catch (error) {
+        console.error("Error moving task:", error);
+        toast.error("Failed to move task");
+        // We should refresh to get the latest state
+        router.refresh();
       }
     }
     // Handle task reordering within the same column
@@ -373,41 +400,62 @@ export default function BoardColumns({ board }: BoardColumnsProps) {
         console.log(`Reordering tasks within column ${sourceColumnId}...`);
         
         try {
-          // Get the updated task IDs in order
-          const updatedColumn = columns.find(col => col.id === sourceColumnId);
-          if (updatedColumn) {
-            const taskIds = updatedColumn.tasks.map(t => t.id);
-            console.log(`Sending reorder request with task IDs: ${taskIds.join(', ')}`);
-            
-            const reorderResponse = await fetch(`/api/columns/${sourceColumnId}/tasks/reorder`, {
-              method: "PATCH",
-              headers: { 
-                "Content-Type": "application/json"
-              },
-              body: JSON.stringify({
-                taskIds: taskIds // Make sure we send the actual task IDs array
-              }),
+          // Find the source column with the updated task order
+          const sourceColumn = columns.find(col => col.id === sourceColumnId);
+          if (!sourceColumn) throw new Error("Source column not found");
+          
+          // Get the updated task positions
+          let updatedTasks: { id: number; position: number }[] = [];
+          setColumns(columns => {
+            const updatedColumns = columns.map(column => {
+              if (column.id === sourceColumnId) {
+                const newTasks = [...column.tasks];
+                const [movedTask] = newTasks.splice(sourceIndex, 1);
+                newTasks.splice(targetIndex, 0, movedTask);
+                
+                // Update positions
+                updatedTasks = newTasks.map((task, index) => ({
+                  id: task.id,
+                  position: index,
+                }));
+                
+                return {
+                  ...column,
+                  tasks: newTasks.map((task, index) => ({
+                    ...task,
+                    position: index,
+                  })),
+                };
+              }
+              return column;
             });
             
-            if (!reorderResponse.ok) {
-              const errorData = await reorderResponse.json();
-              throw new Error(errorData.message || "Failed to reorder tasks");
-            }
-            
-            console.log(`Tasks reordered successfully in column ${sourceColumnId}`);
-            toast.success("Task order saved");
-            
-            // Force a refresh for consistency
-            router.refresh();
-          }
-        } catch (error) {
-          console.error("Failed to update task positions:", error);
-          toast.error("Failed to save task order");
+            return updatedColumns;
+          });
           
-          // Revert UI on error
+          // Update task positions in the database
+          const response = await fetch(`/api/columns/${sourceColumnId}/tasks/reorder`, {
+            method: "PATCH",
+            headers: {
+              "Content-Type": "application/json",
+            },
+            body: JSON.stringify({
+              tasks: updatedTasks,
+            }),
+          });
+          
+          if (!response.ok) {
+            throw new Error("Failed to update task positions");
+          }
+          
+          console.log("Task positions updated successfully");
+        } catch (error) {
+          console.error("Error updating task positions:", error);
+          toast.error("Failed to update task order");
+          // Refresh to get the latest state
           router.refresh();
         }
-      }  
+      }
     }
   };
 
@@ -418,7 +466,15 @@ export default function BoardColumns({ board }: BoardColumnsProps) {
       onDragOver={handleDragOver}
       onDragEnd={handleDragEnd}
     >
-      <div className="flex h-full gap-4 items-start">
+      <div 
+        ref={columnsContainerRef}
+        className="flex h-full gap-4 items-start overflow-x-auto py-2 px-1 pb-4 sm:px-0 sm:py-2 scrollbar-hide"
+        style={{
+          scrollBehavior: "smooth",
+          paddingBottom: "1rem",
+          WebkitOverflowScrolling: "touch"
+        }}
+      >
         <SortableContext items={columns.map(col => `column-${col.id}`)} strategy={horizontalListSortingStrategy}>
           {columns.map((column) => (
             <ColumnContainer

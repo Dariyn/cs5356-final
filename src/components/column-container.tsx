@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useRef, useEffect } from "react";
 import { toast } from "sonner";
 import { useRouter } from "next/navigation";
 import { useSortable } from "@dnd-kit/sortable";
@@ -8,6 +8,7 @@ import { CSS } from "@dnd-kit/utilities";
 import { SortableContext, verticalListSortingStrategy } from "@dnd-kit/sortable";
 import TaskCard from "./task-card";
 import CreateTaskForm from "./create-task-form";
+import { useDroppable } from "@dnd-kit/core";
 
 // Define interfaces to handle PostgreSQL snake_case field names
 interface ColumnWithTasks {
@@ -47,6 +48,17 @@ export default function ColumnContainer({
   const [columnName, setColumnName] = useState(column.name);
   const [isAddingTask, setIsAddingTask] = useState(false);
   const [columnTasks, setColumnTasks] = useState(column.tasks);
+  const columnRef = useRef<HTMLDivElement>(null);
+  const [isVisible, setIsVisible] = useState(false);
+  
+  // Set up droppable for column highlight
+  const { isOver, setNodeRef: setDroppableRef } = useDroppable({
+    id: `column-${column.id}`,
+    data: {
+      type: "column",
+      column,
+    },
+  });
   
   const {
     attributes,
@@ -68,6 +80,31 @@ export default function ColumnContainer({
     transition,
     opacity: isDragging ? 0.5 : 1,
   };
+
+  // Create an intersection observer for fade-in effect
+  useEffect(() => {
+    if (!columnRef.current || isOverlay) return;
+    
+    const observer = new IntersectionObserver(
+      ([entry]) => {
+        if (entry.isIntersecting) {
+          setIsVisible(true);
+        }
+      },
+      {
+        threshold: 0.1,
+        rootMargin: '0px'
+      }
+    );
+    
+    observer.observe(columnRef.current);
+    
+    return () => {
+      if (columnRef.current) {
+        observer.unobserve(columnRef.current);
+      }
+    };
+  }, [isOverlay]);
 
   const handleRenameColumn = async () => {
     if (!columnName.trim()) {
@@ -110,14 +147,8 @@ export default function ColumnContainer({
   };
 
   const handleDeleteColumn = async () => {
-    if (column.tasks.length > 0) {
-      if (!confirm(`This column has ${column.tasks.length} tasks. Are you sure you want to delete it and all its tasks?`)) {
-        return;
-      }
-    } else {
-      if (!confirm("Are you sure you want to delete this column?")) {
-        return;
-      }
+    if (!confirm(`Are you sure you want to delete the "${column.name}" column and all its tasks?`)) {
+      return;
     }
     
     try {
@@ -138,25 +169,39 @@ export default function ColumnContainer({
     }
   };
 
-  const columnRef = isOverlay ? null : setNodeRef;
+  const columnRef = !isOverlay ? setNodeRef : null;
+  const tasksContainer = !isOverlay ? setDroppableRef : null;
 
+  // Determine column colors based on name
+  const getColumnColor = (name: string) => {
+    const lowerName = name.toLowerCase();
+    if (lowerName === 'to do') return '#C4E1F6';  // Light blue
+    if (lowerName === 'in progress') return '#FEEE91';  // Light yellow
+    if (lowerName === 'done') return '#FFBD73';  // Light orange
+    return '#FFFFFF';  // Default white
+  };
+
+  const columnColor = getColumnColor(column.name);
+  const headerColor = columnColor;
+  
   return (
     <div
       ref={columnRef}
       style={style}
       className={`
         rounded-lg shadow-md w-[280px] h-fit max-h-full flex flex-col
-        bg-gradient-to-b from-gray-50 to-gray-100 border border-gray-200
+        border border-gray-200
         ${isOverlay ? "opacity-80 ring-2 ring-blue-400" : ""}
+        ${isVisible ? "opacity-100 transform-none" : "opacity-0 translate-x-8"}
+        transition-all duration-300 ease-in-out
       `}
     >
       {/* Column Header */}
-      <div className={`
+      <div
+        style={{ backgroundColor: headerColor }}
+        className={`
         p-4 font-medium flex justify-between items-center rounded-t-lg
-        border-b border-gray-200 bg-white
-        ${column.name.toLowerCase() === 'to do' ? 'bg-blue-50' : 
-          column.name.toLowerCase() === 'in progress' ? 'bg-amber-50' : 
-          column.name.toLowerCase() === 'done' ? 'bg-green-50' : 'bg-white'}
+        border-b border-gray-200
       `}>
         <div
           {...attributes}
@@ -214,7 +259,17 @@ export default function ColumnContainer({
       </div>
 
       {/* Tasks */}
-      <div className="flex-1 flex flex-col gap-3 p-3 overflow-y-auto max-h-[calc(100vh-220px)]">
+      <div 
+        ref={tasksContainer}
+        className={`
+          flex-1 flex flex-col gap-3 p-3 overflow-y-auto max-h-[calc(100vh-220px)]
+          ${isOver ? 'bg-opacity-70 transition-colors duration-200' : 'bg-opacity-100'}
+        `}
+        style={{ 
+          backgroundColor: isOver ? `${columnColor}` : 'white',
+          transition: 'background-color 0.2s ease-in-out'
+        }}
+      >
         <SortableContext items={columnTasks.map(task => task.id)} strategy={verticalListSortingStrategy}>
           {columnTasks.map((task) => (
             <TaskCard 

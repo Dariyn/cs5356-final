@@ -221,13 +221,14 @@ export default function TaskCard({ task: initialTask, isOverlay = false, onDelet
         ${task.is_completed 
           ? "bg-green-50 border-l-4 border-green-500 border-t border-r border-b border-green-200" 
           : "bg-white border-l-4 border-blue-400 border-t border-r border-b border-gray-200 hover:border-blue-300"}
-        ${isOverlay ? "shadow-lg opacity-90" : "hover:shadow-md"}
+        ${isOverlay ? "shadow-lg opacity-90" : "hover:shadow-md hover:scale-105"}
+        w-full
       `}
       {...attributes}
       {...listeners}
       onClick={() => !isOverlay && !isDragging && setIsEditing(true)}
     >
-      <div className="flex justify-between items-start">
+      <div className="flex flex-col sm:flex-row sm:justify-between sm:items-start">
         <div className="flex-1 mr-2">
           <h3 className={`text-sm font-medium mb-1 ${task.is_completed ? "line-through text-gray-500" : "text-gray-800"}`}>
             {task.title}
@@ -240,7 +241,7 @@ export default function TaskCard({ task: initialTask, isOverlay = false, onDelet
         </div>
         
         {!isOverlay && (
-          <div className="flex flex-col gap-2">
+          <div className="flex flex-row sm:flex-col gap-2 mt-2 sm:mt-0">
             <button
               onClick={(e) => {
                 e.stopPropagation();
@@ -256,9 +257,9 @@ export default function TaskCard({ task: initialTask, isOverlay = false, onDelet
               title={task.is_completed ? "Mark as incomplete" : "Mark as complete"}
             >
               {task.is_completed ? (
-                <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-                  <path d="M12 22c5.523 0 10-4.477 10-10S17.523 2 12 2 2 6.477 2 12s4.477 10 10 10z"></path>
-                  <path d="m9 12 2 2 4-4"></path>
+                <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="check-icon">
+                  <path d="M12 22c5.523 0 10-4.477 10-10S17.523 2 12 2 2 6.477 2 12s4.477 10 10 10z" className="circle-path"></path>
+                  <path d="m9 12 2 2 4-4" className="check-path"></path>
                 </svg>
               ) : (
                 <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
