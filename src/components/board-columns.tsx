@@ -420,36 +420,45 @@ export default function BoardColumns({ board }: BoardColumnsProps) {
       onDragOver={handleDragOver}
       onDragEnd={handleDragEnd}
     >
-      <div className="flex h-full gap-6 items-start">
-        <SortableContext items={columns.map(col => `column-${col.id}`)} strategy={horizontalListSortingStrategy}>
-          {columns.map((column) => (
-            <ColumnContainer
-              key={column.id}
-              column={column}
-              boardId={board.id}
-              onAddTask={handleAddTask}
-              onRemoveTask={handleRemoveTask}
-              onUpdateTask={handleUpdateTask}
-            />
-          ))}
-        </SortableContext>
-        
-        <DragOverlay>
-          {activeColumn && (
-            <ColumnContainer
-              column={activeColumn}
-              boardId={board.id}
-              isOverlay
-            />
-          )}
-          {activeTask && (
-            <TaskCard
-              task={activeTask}
-              isOverlay
-            />
-          )}
-        </DragOverlay>
+      {/* Mobile view instructions */}
+      <div className="md:hidden bg-blue-50 p-3 mb-4 rounded-lg border border-blue-200 text-sm text-blue-800">
+        <p className="font-medium">Mobile View</p>
+        <p>Scroll horizontally to see all columns. Tap and hold to drag items.</p>
       </div>
+
+      {/* Responsive container with horizontal scroll on mobile */}
+      <div className="overflow-x-auto pb-4 -mx-4 px-4 md:mx-0 md:px-0">
+        <div className="flex h-full gap-4 md:gap-6 items-start min-w-max">
+          <SortableContext items={columns.map(col => `column-${col.id}`)} strategy={horizontalListSortingStrategy}>
+            {columns.map((column) => (
+              <ColumnContainer
+                key={column.id}
+                column={column}
+                boardId={board.id}
+                onAddTask={handleAddTask}
+                onRemoveTask={handleRemoveTask}
+                onUpdateTask={handleUpdateTask}
+              />
+            ))}
+          </SortableContext>
+        </div>
+      </div>
+      
+      <DragOverlay>
+        {activeColumn && (
+          <ColumnContainer
+            column={activeColumn}
+            boardId={board.id}
+            isOverlay
+          />
+        )}
+        {activeTask && (
+          <TaskCard
+            task={activeTask}
+            isOverlay
+          />
+        )}
+      </DragOverlay>
     </DndContext>
   );
 }

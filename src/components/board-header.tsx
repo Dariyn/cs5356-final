@@ -158,23 +158,23 @@ export default function BoardHeader({ board }: BoardHeaderProps) {
           </div>
         </div>
       ) : (
-        <div className="flex justify-between items-start">
+        <div className="flex flex-col sm:flex-row justify-between items-start gap-4">
           <div>
-            <h1 className="text-2xl font-bold text-gray-900">{board.name}</h1>
+            <h1 className="text-xl sm:text-2xl font-bold text-gray-900 break-words">{board.name}</h1>
             {board.description && (
-              <p className="text-gray-700 mt-1 text-sm">{board.description}</p>
+              <p className="text-gray-700 mt-1 text-sm break-words">{board.description}</p>
             )}
           </div>
-          <div className="flex space-x-2">
+          <div className="flex w-full sm:w-auto space-x-2 self-end sm:self-start">
             <button
               onClick={() => setIsEditing(true)}
-              className="px-3 py-1.5 bg-white border border-gray-300 rounded-md text-gray-800 text-sm hover:bg-gray-50 font-medium"
+              className="flex-1 sm:flex-none px-3 py-1.5 bg-white border border-gray-300 rounded-md text-gray-800 text-sm hover:bg-gray-50 font-medium"
             >
               Edit Board
             </button>
             <button
               onClick={handleDelete}
-              className="px-3 py-1.5 bg-white border border-red-300 rounded-md text-red-600 text-sm hover:bg-red-50 font-medium"
+              className="flex-1 sm:flex-none px-3 py-1.5 bg-white border border-red-300 rounded-md text-red-600 text-sm hover:bg-red-50 font-medium"
               disabled={isLoading}
             >
               Delete
@@ -184,4 +184,4 @@ export default function BoardHeader({ board }: BoardHeaderProps) {
       )}
     </div>
   );
-} 
+}

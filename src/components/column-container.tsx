@@ -153,7 +153,7 @@ export default function ColumnContainer({
       ref={columnRef}
       style={style}
       className={`
-        rounded-lg shadow-md w-[350px] h-fit max-h-full flex flex-col
+        rounded-lg shadow-md w-[280px] sm:w-[320px] md:w-[350px] h-fit max-h-full flex flex-col
         bg-gradient-to-b from-gray-50 to-gray-100 border border-gray-200
         ${isOverlay ? "opacity-80 ring-2 ring-blue-400" : ""}
       `}
@@ -222,7 +222,7 @@ export default function ColumnContainer({
       </div>
 
       {/* Tasks */}
-      <div className="flex-1 flex flex-col gap-3 p-3 overflow-y-auto max-h-[calc(100vh-220px)]">
+      <div className="flex-1 flex flex-col gap-3 p-3 overflow-y-auto max-h-[60vh] md:max-h-[calc(100vh-220px)]">
         <SortableContext items={columnTasks.map(task => task.id)} strategy={verticalListSortingStrategy}>
           {columnTasks.map((task) => (
             <TaskCard 
