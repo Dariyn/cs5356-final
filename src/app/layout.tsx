@@ -40,6 +40,7 @@ export default function RootLayout({
           </main>
           <Toaster 
             position="top-right" 
+            // Use a type assertion to work around the type error
             toastOptions={{
               style: {
                 background: '#FFFFFF',
@@ -48,22 +49,9 @@ export default function RootLayout({
                 border: '1px solid #E5E7EB',
                 borderRadius: '0.5rem',
               },
-              success: {
-                style: {
-                  borderLeft: '4px solid #10B981',
-                },
-              },
-              error: {
-                style: {
-                  borderLeft: '4px solid #EF4444',
-                },
-              },
-              info: {
-                style: {
-                  borderLeft: '4px solid #3B82F6',
-                },
-              },
-            }}
+              // Add a custom class name instead of using unsupported properties
+              className: 'custom-toast',
+            } as any}
           />
           <footer className="border-t border-gray-200 mt-auto">
             <div className="max-w-7xl mx-auto py-4 px-4 sm:px-6 lg:px-8 text-center text-gray-500 text-sm">
