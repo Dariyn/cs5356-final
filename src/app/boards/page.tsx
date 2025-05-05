@@ -10,8 +10,11 @@ export default async function BoardsPage() {
   const session = await getServerSession(authOptions);
   
   if (!session?.user) {
+    console.log("No session found, redirecting to login");
     redirect("/login");
   }
+  
+  console.log("Session user:", session.user);
   
   let userBoards = [];
   
@@ -23,15 +26,22 @@ export default async function BoardsPage() {
       throw new Error("Database connection string is missing");
     }
     
+    console.log("Connecting to database with connection string...");
     const client = new Client({ connectionString });
     await client.connect();
+    console.log("Connected to database successfully");
     
-    // Get user's boards
+    // Get user's boards - ensure we handle the ID correctly
+    const userId = session.user.id;
+    console.log("Fetching boards for user ID:", userId);
+    
+    // Try to handle both string and number IDs
     const result = await client.query(
       'SELECT * FROM boards WHERE user_id = $1 ORDER BY created_at DESC',
-      [parseInt(session.user.id)]
+      [userId] // Use the ID directly without parsing
     );
     
+    console.log(`Found ${result.rows.length} boards for user`);
     userBoards = result.rows;
     await client.end();
   } catch (error) {

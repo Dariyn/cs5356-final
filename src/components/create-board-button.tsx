@@ -5,7 +5,7 @@ import { toast } from "sonner";
 import { useRouter } from "next/navigation";
 
 type CreateBoardButtonProps = {
-  userId: number;
+  userId: number | string; // Accept both number and string IDs
   variant?: "default" | "primary";
 };
 
