@@ -10,11 +10,25 @@ const SECRET = process.env.NEXTAUTH_SECRET || "your-super-secret-key-for-develop
 export const authOptions: NextAuthOptions = {
   session: {
     strategy: "jwt",
+    maxAge: 30 * 24 * 60 * 60, // 30 days
   },
   secret: SECRET,
   pages: {
     signIn: "/login",
+    error: "/login", // Error code passed in query string as ?error=
   },
+  cookies: {
+    sessionToken: {
+      name: `next-auth.session-token`,
+      options: {
+        httpOnly: true,
+        sameSite: "lax",
+        path: "/",
+        secure: process.env.NODE_ENV === "production",
+      },
+    },
+  },
+  debug: process.env.NODE_ENV !== "production",
   providers: [
     CredentialsProvider({
       name: "Credentials",
