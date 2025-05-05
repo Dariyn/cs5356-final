@@ -159,38 +159,15 @@ export default function BoardColumns({ board }: BoardColumnsProps) {
           position: index
         }));
         
-        // Add the task to the target column at the end
-        const newPosition = newColumns[targetColumnIndex].tasks.length;
-        task.column_id = newColumnId;
-        task.position = newPosition;
-        
-        newColumns[targetColumnIndex].tasks.push(task);
-        
         // Create a new task with updated column_id
         const updatedTask = {
           ...task,
-          column_id: newColumnId
+          column_id: newColumnId,
+          position: newColumns[targetColumnIndex].tasks.length // Set position to the end of the target column
         };
         
-        // Remove task from source column
-        newColumns[sourceColumnIndex] = {
-          ...newColumns[sourceColumnIndex],
-          tasks: [
-            ...newColumns[sourceColumnIndex].tasks.slice(0, taskIndex),
-            ...newColumns[sourceColumnIndex].tasks.slice(taskIndex + 1)
-          ]
-        };
-        
-        // Find destination column
-        const destColumnIndex = newColumns.findIndex(col => col.id === newColumnId);
-        
-        // If destination column exists, add the task to it
-        if (destColumnIndex !== -1) {
-          newColumns[destColumnIndex] = {
-            ...newColumns[destColumnIndex],
-            tasks: [...newColumns[destColumnIndex].tasks, updatedTask]
-          };
-        }
+        // Add the task to the target column at the end
+        newColumns[targetColumnIndex].tasks.push(updatedTask);
         
         return newColumns;
       });

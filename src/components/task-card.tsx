@@ -30,6 +30,7 @@ export default function TaskCard({ task: initialTask, isOverlay = false, onDelet
   const [isEditing, setIsEditing] = useState(false);
   const [title, setTitle] = useState(initialTask.title);
   const [description, setDescription] = useState(initialTask.description || "");
+  const [dueDate, setDueDate] = useState(initialTask.due_date ? new Date(initialTask.due_date).toISOString().split('T')[0] : "");
   const [isLoading, setIsLoading] = useState(false);
   const [task, setTask] = useState(initialTask);
   
@@ -71,6 +72,7 @@ export default function TaskCard({ task: initialTask, isOverlay = false, onDelet
         body: JSON.stringify({
           title: title.trim(),
           description: description.trim(),
+          due_date: dueDate || null,
         }),
       });
       
@@ -191,6 +193,18 @@ export default function TaskCard({ task: initialTask, isOverlay = false, onDelet
             placeholder="Add a description..."
             rows={2}
           />
+          <div className="flex flex-col space-y-1">
+            <label htmlFor="dueDate" className="text-xs text-gray-600 font-medium">
+              Due Date
+            </label>
+            <input
+              id="dueDate"
+              type="date"
+              value={dueDate}
+              onChange={(e) => setDueDate(e.target.value)}
+              className="w-full px-2 py-1 text-sm border rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+            />
+          </div>
           <div className="flex justify-end space-x-2">
             <button
               onClick={() => setIsEditing(false)}
