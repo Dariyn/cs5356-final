@@ -217,7 +217,14 @@ export default function ColumnContainer({
       <div className="flex-1 flex flex-col gap-3 p-3 overflow-y-auto max-h-[calc(100vh-220px)]">
         <SortableContext items={columnTasks.map(task => task.id)} strategy={verticalListSortingStrategy}>
           {columnTasks.map((task) => (
-            <TaskCard key={task.id} task={task} />
+            <TaskCard 
+              key={task.id} 
+              task={task} 
+              onDelete={(taskId) => {
+                // Remove the deleted task from the column's tasks
+                setColumnTasks(prevTasks => prevTasks.filter(t => t.id !== taskId));
+              }}
+            />
           ))}
         </SortableContext>
 

@@ -21,9 +21,10 @@ interface Task {
 interface TaskCardProps {
   task: Task;
   isOverlay?: boolean;
+  onDelete?: (taskId: number) => void;
 }
 
-export default function TaskCard({ task: initialTask, isOverlay = false }: TaskCardProps) {
+export default function TaskCard({ task: initialTask, isOverlay = false, onDelete }: TaskCardProps) {
   const router = useRouter();
   const [isEditing, setIsEditing] = useState(false);
   const [title, setTitle] = useState(initialTask.title);
@@ -106,7 +107,14 @@ export default function TaskCard({ task: initialTask, isOverlay = false }: TaskC
       }
       
       toast.success("Task deleted successfully");
-      router.refresh();
+      
+      // If we have an onDelete callback, call it to update the parent component
+      if (onDelete) {
+        onDelete(task.id);
+      } else {
+        // Fallback to router refresh if no callback is provided
+        router.refresh();
+      }
     } catch (error) {
       console.error("Error deleting task:", error);
       toast.error("Failed to delete task");
