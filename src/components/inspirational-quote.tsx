@@ -51,20 +51,20 @@ export default function InspirationalQuote() {
 
   return (
     <div className="text-center mt-4">
-      {quote ? (
-        <div className="py-2 px-4 bg-white rounded-lg shadow-sm max-w-2xl mx-auto">
+      {quote && (
+        <div className="py-2 px-4 bg-white rounded-lg shadow-sm max-w-2xl mx-auto mb-4">
           <p className="text-gray-800 italic">"{quote.quote}"</p>
           <p className="text-gray-600 text-sm mt-1">- {quote.author}</p>
         </div>
-      ) : (
-        <button
-          onClick={fetchQuote}
-          disabled={isLoading}
-          className="px-4 py-2 bg-blue-100 text-blue-600 rounded-md hover:bg-blue-200 transition-colors text-sm font-medium"
-        >
-          {isLoading ? "Loading..." : "Get Inspirational Quote"}
-        </button>
       )}
+      
+      <button
+        onClick={fetchQuote}
+        disabled={isLoading}
+        className="px-4 py-2 bg-blue-100 text-blue-600 rounded-md hover:bg-blue-200 transition-colors text-sm font-medium"
+      >
+        {isLoading ? "Loading..." : quote ? "Get Another Quote" : "Get Inspirational Quote"}
+      </button>
     </div>
   );
 } 
