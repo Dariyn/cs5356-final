@@ -1,6 +1,10 @@
 @import "tailwindcss";
 
 :root {
+  --kanban-blue: #C4E1F6;
+  --kanban-yellow: #FEEE91;
+  --kanban-orange: #FFBD73;
+  --kanban-deep-orange: #FF9D3D;
   --background: #ffffff;
   --foreground: #171717;
 }
