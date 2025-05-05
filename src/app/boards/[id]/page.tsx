@@ -9,9 +9,11 @@ const { Client } = pkg;
 import BoardHeader from "@/components/board-header";
 import ClientDndProvider from "@/components/client-dnd-provider";
 
-type BoardPageProps = {
+// Define the correct type for Next.js App Router page props
+interface BoardPageProps {
   params: { id: string };
-};
+  searchParams?: { [key: string]: string | string[] | undefined };
+}
 
 export const fetchCache = 'force-no-store';
 export const dynamic = 'force-dynamic';
