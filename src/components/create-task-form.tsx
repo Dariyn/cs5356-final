@@ -6,7 +6,7 @@ import { toast } from "sonner";
 interface CreateTaskFormProps {
   columnId: number;
   onCancel: () => void;
-  onSuccess: () => void;
+  onSuccess: (newTask?: any) => void;
 }
 
 export default function CreateTaskForm({
@@ -48,8 +48,11 @@ export default function CreateTaskForm({
         throw new Error(data.message || "Failed to create task");
       }
       
+      const data = await response.json();
+      const newTask = data.task;
+      
       toast.success("Task created successfully");
-      onSuccess();
+      onSuccess(newTask);
     } catch (error) {
       console.error("Error creating task:", error);
       toast.error("Failed to create task");

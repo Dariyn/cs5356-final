@@ -46,6 +46,7 @@ export default function ColumnContainer({
   const [isEditing, setIsEditing] = useState(false);
   const [columnName, setColumnName] = useState(column.name);
   const [isAddingTask, setIsAddingTask] = useState(false);
+  const [columnTasks, setColumnTasks] = useState(column.tasks);
   
   const {
     attributes,
@@ -214,13 +215,13 @@ export default function ColumnContainer({
 
       {/* Tasks */}
       <div className="flex-1 flex flex-col gap-3 p-3 overflow-y-auto max-h-[calc(100vh-220px)]">
-        <SortableContext items={column.tasks.map(task => task.id)} strategy={verticalListSortingStrategy}>
-          {column.tasks.map((task) => (
+        <SortableContext items={columnTasks.map(task => task.id)} strategy={verticalListSortingStrategy}>
+          {columnTasks.map((task) => (
             <TaskCard key={task.id} task={task} />
           ))}
         </SortableContext>
 
-        {column.tasks.length === 0 && !isAddingTask && (
+        {columnTasks.length === 0 && !isAddingTask && (
           <div className="bg-gray-50 border border-dashed border-gray-200 rounded-lg py-8 px-3 text-center">
             <p className="text-gray-500 text-sm">
               No tasks yet
@@ -235,9 +236,17 @@ export default function ColumnContainer({
           <CreateTaskForm
             columnId={column.id}
             onCancel={() => setIsAddingTask(false)}
-            onSuccess={() => {
+            onSuccess={(newTask) => {
               setIsAddingTask(false);
-              router.refresh();
+              
+              // If we have the new task data, update the UI immediately
+              if (newTask) {
+                // Add the new task to the column's tasks
+                setColumnTasks(prevTasks => [...prevTasks, newTask]);
+              } else {
+                // Fallback to router refresh if we don't have the task data
+                router.refresh();
+              }
             }}
           />
         ) : (
