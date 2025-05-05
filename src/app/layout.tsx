@@ -4,6 +4,7 @@ import "./globals.css";
 import { Toaster } from "sonner";
 import AuthProvider from "@/components/auth-provider";
 import Header from "@/components/header";
+import InspirationalQuote from "@/components/inspirational-quote";
 
 const geistSans = Geist({
   variable: "--font-geist-sans",
@@ -54,7 +55,10 @@ export default function RootLayout({
           />
           <footer className="border-t border-gray-200 mt-auto">
             <div className="max-w-7xl mx-auto py-4 px-4 sm:px-6 lg:px-8 text-center text-gray-500 text-sm">
-              Kanban Board &copy; {new Date().getFullYear()} - A task management application
+              <InspirationalQuote />
+              <div className="mt-4">
+                Kanban Board &copy; {new Date().getFullYear()} - A task management application
+              </div>
             </div>
           </footer>
         </AuthProvider>
