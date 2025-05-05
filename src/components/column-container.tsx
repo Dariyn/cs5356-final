@@ -34,13 +34,19 @@ interface ColumnContainerProps {
   column: ColumnWithTasks;
   boardId: number;
   isOverlay?: boolean;
+  onAddTask?: (columnId: number, newTask: Task) => void;
+  onRemoveTask?: (taskId: number) => void;
+  onUpdateTask?: (updatedTask: Task) => void;
 }
 
 export default function ColumnContainer({ 
   column, 
   // eslint-disable-next-line @typescript-eslint/no-unused-vars
   boardId,
-  isOverlay = false 
+  isOverlay = false,
+  onAddTask,
+  onRemoveTask,
+  onUpdateTask
 }: ColumnContainerProps) {
   const router = useRouter();
   const [isEditing, setIsEditing] = useState(false);
@@ -223,14 +229,38 @@ export default function ColumnContainer({
               key={task.id} 
               task={task} 
               onDelete={(taskId) => {
-                // Instead of updating local state, refresh the entire board
-                // This ensures all components have the latest data
-                router.refresh();
+                // Call the API to delete the task
+                fetch(`/api/tasks/${taskId}`, {
+                  method: 'DELETE',
+                })
+                .then(response => {
+                  if (response.ok) {
+                    // If the API call was successful, update the UI without a page refresh
+                    if (onRemoveTask) {
+                      onRemoveTask(taskId);
+                    } else {
+                      // Fallback to router refresh if onRemoveTask is not provided
+                      router.refresh();
+                    }
+                    toast.success("Task deleted successfully");
+                  } else {
+                    throw new Error("Failed to delete task");
+                  }
+                })
+                .catch(error => {
+                  console.error("Error deleting task:", error);
+                  toast.error("Failed to delete task");
+                  router.refresh(); // Refresh on error to ensure UI is in sync
+                });
               }}
               onUpdate={(updatedTask) => {
-                // Instead of updating local state, refresh the entire board
-                // This ensures all components have the latest data
-                router.refresh();
+                // If the onUpdateTask prop is provided, use it to update the UI without a page refresh
+                if (onUpdateTask) {
+                  onUpdateTask(updatedTask);
+                } else {
+                  // Fallback to router refresh if onUpdateTask is not provided
+                  router.refresh();
+                }
               }}
             />
           ))}
@@ -254,9 +284,13 @@ export default function ColumnContainer({
             onSuccess={(newTask) => {
               setIsAddingTask(false);
               
-              // Always refresh the router to ensure all components have the latest data
-              // This ensures the column count and task list stay in sync
-              router.refresh();
+              // If the onAddTask prop is provided, use it to update the UI without a page refresh
+              if (newTask && onAddTask) {
+                onAddTask(column.id, newTask);
+              } else {
+                // Fallback to router refresh if onAddTask is not provided or no newTask
+                router.refresh();
+              }
             }}
           />
         ) : (

@@ -58,6 +58,50 @@ export default function BoardColumns({ board }: BoardColumnsProps) {
   const [activeColumn, setActiveColumn] = useState<ColumnWithTasks | null>(null);
   const [activeTask, setActiveTask] = useState<Task | null>(null);
   
+  // Function to add a new task to a column without refreshing the page
+  const handleAddTask = (columnId: number, newTask: Task) => {
+    setColumns(currentColumns => {
+      return currentColumns.map(column => {
+        if (column.id === columnId) {
+          return {
+            ...column,
+            tasks: [...column.tasks, newTask]
+          };
+        }
+        return column;
+      });
+    });
+  };
+  
+  // Function to remove a task from a column without refreshing the page
+  const handleRemoveTask = (taskId: number) => {
+    setColumns(currentColumns => {
+      return currentColumns.map(column => {
+        return {
+          ...column,
+          tasks: column.tasks.filter(task => task.id !== taskId)
+        };
+      });
+    });
+  };
+  
+  // Function to update a task in a column without refreshing the page
+  const handleUpdateTask = (updatedTask: Task) => {
+    setColumns(currentColumns => {
+      return currentColumns.map(column => {
+        if (column.id === updatedTask.column_id) {
+          return {
+            ...column,
+            tasks: column.tasks.map(task => 
+              task.id === updatedTask.id ? updatedTask : task
+            )
+          };
+        }
+        return column;
+      });
+    });
+  };
+  
   const sensors = useSensors(
     useSensor(MouseSensor, {
       activationConstraint: {
@@ -108,68 +152,61 @@ export default function BoardColumns({ board }: BoardColumnsProps) {
     // Return if no change
     if (activeId === overId) return;
     
-    // Handle moving tasks between columns
+    // We only care about dragging tasks over columns
     if (!activeId.startsWith("column-") && overId.startsWith("column-")) {
-      // We're dragging a task over a column
       const taskId = parseInt(activeId);
       const newColumnId = parseInt(overId.replace("column-", ""));
       
-      setColumns(prevColumns => {
-        // Find the task and its source column
-        let sourceColumnIndex = -1;
-        let taskIndex = -1;
-        
-        // First find the source column and task
-        for (let i = 0; i < prevColumns.length; i++) {
-          const column = prevColumns[i];
-          const tIndex = column.tasks.findIndex(t => t.id === taskId);
-          if (tIndex !== -1) {
-            sourceColumnIndex = i;
-            taskIndex = tIndex;
-            break;
+      // Find the source column containing the task
+      let sourceColumnId: number | null = null;
+      
+      for (const column of columns) {
+        const taskIndex = column.tasks.findIndex(t => t.id === taskId);
+        if (taskIndex !== -1) {
+          sourceColumnId = column.id;
+          break;
+        }
+      }
+      
+      // Only update if we're moving to a different column
+      if (sourceColumnId !== null && sourceColumnId !== newColumnId) {
+        // Update the columns state to move the task between columns
+        setColumns(currentColumns => {
+          // First find the task and remove it from the source column
+          let taskToMove: Task | null = null;
+          
+          const updatedColumns = currentColumns.map(column => {
+            if (column.id === sourceColumnId) {
+              // Find the task to move
+              const task = column.tasks.find(t => t.id === taskId);
+              if (task) {
+                taskToMove = { ...task, column_id: newColumnId };
+                // Remove the task from this column
+                return {
+                  ...column,
+                  tasks: column.tasks.filter(t => t.id !== taskId)
+                };
+              }
+            }
+            return column;
+          });
+          
+          // Then add the task to the target column
+          if (taskToMove) {
+            return updatedColumns.map(column => {
+              if (column.id === newColumnId) {
+                return {
+                  ...column,
+                  tasks: [...column.tasks, taskToMove!]
+                };
+              }
+              return column;
+            });
           }
-        }
-        
-        // If task is not found, return original columns
-        if (sourceColumnIndex === -1 || taskIndex === -1) {
-          return prevColumns;
-        }
-        
-        // Create a new array of columns
-        const newColumns = [...prevColumns];
-        
-        // Get the task to move (we know it exists from checks above)
-        const task = {...newColumns[sourceColumnIndex].tasks[taskIndex]};
-        
-        // Find the target column index
-        const targetColumnIndex = newColumns.findIndex(col => col.id === newColumnId);
-        
-        // If target column doesn't exist, return original columns
-        if (targetColumnIndex === -1) {
-          return prevColumns;
-        }
-        
-        // Remove the task from the source column
-        newColumns[sourceColumnIndex].tasks.splice(taskIndex, 1);
-        
-        // Update positions in the source column
-        newColumns[sourceColumnIndex].tasks = newColumns[sourceColumnIndex].tasks.map((t, index) => ({
-          ...t,
-          position: index
-        }));
-        
-        // Create a new task with updated column_id
-        const updatedTask = {
-          ...task,
-          column_id: newColumnId,
-          position: newColumns[targetColumnIndex].tasks.length // Set position to the end of the target column
-        };
-        
-        // Add the task to the target column at the end
-        newColumns[targetColumnIndex].tasks.push(updatedTask);
-        
-        return newColumns;
-      });
+          
+          return currentColumns; // Return original if something went wrong
+        });
+      }
     }
   };
 
@@ -188,12 +225,6 @@ export default function BoardColumns({ board }: BoardColumnsProps) {
     
     // Return if no change
     if (activeId === overId) return;
-    
-    // Clear any ghost copies by forcing a refresh after drag operations
-    // Using a longer timeout to ensure server has time to process changes
-    const forceRefresh = () => {
-      setTimeout(() => router.refresh(), 300);
-    };
     
     if (activeId.startsWith("column-") && overId.startsWith("column-")) {
       // Reordering columns
@@ -239,9 +270,6 @@ export default function BoardColumns({ board }: BoardColumnsProps) {
           
           console.log(`Columns reordered successfully`);
           toast.success("Column order saved");
-          
-          // Force a refresh for consistency
-          router.refresh();
         } catch (error) {
           console.error("Failed to update column positions:", error);
           toast.error("Failed to save column order");
@@ -258,16 +286,11 @@ export default function BoardColumns({ board }: BoardColumnsProps) {
       
       // Find the source column containing the task
       let sourceColumnId: number | null = null;
-      let sourceColumnIndex = -1;
-      let taskIndex = -1;
       
-      for (let i = 0; i < columns.length; i++) {
-        const column = columns[i];
-        const tIndex = column.tasks.findIndex(t => t.id === taskId);
-        if (tIndex !== -1) {
+      for (const column of columns) {
+        const taskIndex = column.tasks.findIndex(t => t.id === taskId);
+        if (taskIndex !== -1) {
           sourceColumnId = column.id;
-          sourceColumnIndex = i;
-          taskIndex = tIndex;
           break;
         }
       }
@@ -295,9 +318,7 @@ export default function BoardColumns({ board }: BoardColumnsProps) {
           console.log(`Task moved successfully:`, data);
           toast.success("Task moved successfully");
           
-          // Force a refresh to ensure UI is in sync with the database
-          // and clear any ghost copies
-          forceRefresh();
+          // We don't need to refresh since we've already updated the state in handleDragOver
         } catch (error) {
           console.error("Failed to move task:", error);
           toast.error("Failed to move task");
@@ -314,7 +335,6 @@ export default function BoardColumns({ board }: BoardColumnsProps) {
       
       // Find the columns containing these tasks
       let sourceColumnId: number | null = null;
-      let targetColumnId: number | null = null;
       let sourceIndex: number = -1;
       let targetIndex: number = -1;
       
@@ -328,17 +348,16 @@ export default function BoardColumns({ board }: BoardColumnsProps) {
         }
         
         if (tIndex !== -1) {
-          targetColumnId = column.id;
           targetIndex = tIndex;
         }
         
-        if (sourceColumnId !== null && targetColumnId !== null) break;
+        if (sourceIndex !== -1 && targetIndex !== -1) break;
       }
       
-      if (sourceColumnId === targetColumnId && sourceIndex !== -1 && targetIndex !== -1) {
+      if (sourceColumnId !== null && sourceIndex !== -1 && targetIndex !== -1) {
         // Reordering within the same column
-        setColumns(columns => {
-          return columns.map(column => {
+        setColumns(currentColumns => {
+          return currentColumns.map(column => {
             if (column.id === sourceColumnId) {
               const newTasks = [...column.tasks];
               const [movedTask] = newTasks.splice(sourceIndex, 1);
@@ -371,7 +390,7 @@ export default function BoardColumns({ board }: BoardColumnsProps) {
                 "Content-Type": "application/json"
               },
               body: JSON.stringify({
-                taskIds: taskIds // Make sure we send the actual task IDs array
+                taskIds: taskIds
               }),
             });
             
@@ -382,9 +401,6 @@ export default function BoardColumns({ board }: BoardColumnsProps) {
             
             console.log(`Tasks reordered successfully in column ${sourceColumnId}`);
             toast.success("Task order saved");
-            
-            // Force a refresh for consistency
-            router.refresh();
           }
         } catch (error) {
           console.error("Failed to update task positions:", error);
@@ -411,6 +427,9 @@ export default function BoardColumns({ board }: BoardColumnsProps) {
               key={column.id}
               column={column}
               boardId={board.id}
+              onAddTask={handleAddTask}
+              onRemoveTask={handleRemoveTask}
+              onUpdateTask={handleUpdateTask}
             />
           ))}
         </SortableContext>
@@ -433,4 +452,4 @@ export default function BoardColumns({ board }: BoardColumnsProps) {
       </div>
     </DndContext>
   );
-} 
+}
