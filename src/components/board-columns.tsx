@@ -190,8 +190,9 @@ export default function BoardColumns({ board }: BoardColumnsProps) {
     if (activeId === overId) return;
     
     // Clear any ghost copies by forcing a refresh after drag operations
+    // Using a longer timeout to ensure server has time to process changes
     const forceRefresh = () => {
-      setTimeout(() => router.refresh(), 100);
+      setTimeout(() => router.refresh(), 300);
     };
     
     if (activeId.startsWith("column-") && overId.startsWith("column-")) {

@@ -46,7 +46,9 @@ export default function ColumnContainer({
   const [isEditing, setIsEditing] = useState(false);
   const [columnName, setColumnName] = useState(column.name);
   const [isAddingTask, setIsAddingTask] = useState(false);
-  const [columnTasks, setColumnTasks] = useState(column.tasks);
+  // Use the tasks directly from the column prop to ensure it stays in sync with parent state
+  // This ensures the count badge always shows the correct number
+  const columnTasks = column.tasks;
   
   const {
     attributes,
@@ -221,14 +223,14 @@ export default function ColumnContainer({
               key={task.id} 
               task={task} 
               onDelete={(taskId) => {
-                // Remove the deleted task from the column's tasks
-                setColumnTasks(prevTasks => prevTasks.filter(t => t.id !== taskId));
+                // Instead of updating local state, refresh the entire board
+                // This ensures all components have the latest data
+                router.refresh();
               }}
               onUpdate={(updatedTask) => {
-                // Update the task in the column's tasks
-                setColumnTasks(prevTasks => 
-                  prevTasks.map(t => t.id === updatedTask.id ? updatedTask : t)
-                );
+                // Instead of updating local state, refresh the entire board
+                // This ensures all components have the latest data
+                router.refresh();
               }}
             />
           ))}
@@ -252,14 +254,9 @@ export default function ColumnContainer({
             onSuccess={(newTask) => {
               setIsAddingTask(false);
               
-              // If we have the new task data, update the UI immediately
-              if (newTask) {
-                // Add the new task to the column's tasks
-                setColumnTasks(prevTasks => [...prevTasks, newTask]);
-              } else {
-                // Fallback to router refresh if we don't have the task data
-                router.refresh();
-              }
+              // Always refresh the router to ensure all components have the latest data
+              // This ensures the column count and task list stay in sync
+              router.refresh();
             }}
           />
         ) : (

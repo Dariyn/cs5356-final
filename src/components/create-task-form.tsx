@@ -52,7 +52,12 @@ export default function CreateTaskForm({
       const newTask = data.task;
       
       toast.success("Task created successfully");
-      onSuccess(newTask);
+      
+      // Use a small delay before calling onSuccess to ensure the server has time to process
+      // This helps prevent issues with the column count not updating properly
+      setTimeout(() => {
+        onSuccess(newTask);
+      }, 100);
     } catch (error) {
       console.error("Error creating task:", error);
       toast.error("Failed to create task");
