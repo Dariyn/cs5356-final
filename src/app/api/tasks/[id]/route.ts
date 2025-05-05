@@ -36,7 +36,7 @@ export async function PATCH(request: NextRequest) {
     }
 
     const data = await request.json();
-    const { title, description, due_date, priority } = data;
+    const { title, description, due_date } = data;
 
     // Connect to PostgreSQL directly
     const connectionString = process.env.POSTGRES_URL || process.env.DATABASE_URL;
@@ -87,10 +87,10 @@ export async function PATCH(request: NextRequest) {
       // Update the task
       const updateResult = await client.query(
         `UPDATE tasks 
-         SET title = $1, description = $2, due_date = $3, priority = $4
-         WHERE id = $5 
+         SET title = $1, description = $2, due_date = $3 
+         WHERE id = $4 
          RETURNING *`,
-        [title, description || null, due_date, priority || 'medium', taskId]
+        [title, description || null, due_date, taskId]
       );
 
       await client.query('COMMIT');

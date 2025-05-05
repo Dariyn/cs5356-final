@@ -16,7 +16,6 @@ interface Task {
   created_at?: Date | string;
   due_date?: Date | string;
   is_completed: boolean;
-  priority?: string;
 }
 
 interface TaskCardProps {
@@ -32,7 +31,6 @@ export default function TaskCard({ task: initialTask, isOverlay = false, onDelet
   const [title, setTitle] = useState(initialTask.title);
   const [description, setDescription] = useState(initialTask.description || "");
   const [dueDate, setDueDate] = useState(initialTask.due_date ? new Date(initialTask.due_date).toISOString().split('T')[0] : "");
-  const [priority, setPriority] = useState(initialTask.priority || "medium");
   const [isLoading, setIsLoading] = useState(false);
   const [task, setTask] = useState(initialTask);
   
@@ -75,7 +73,6 @@ export default function TaskCard({ task: initialTask, isOverlay = false, onDelet
           title: title.trim(),
           description: description.trim(),
           due_date: dueDate || null,
-          priority: priority,
         }),
       });
       
@@ -196,69 +193,39 @@ export default function TaskCard({ task: initialTask, isOverlay = false, onDelet
 
   const taskRef = isOverlay ? null : setNodeRef;
 
-  // Priority indicator colors
-  const getPriorityColor = (priority: string) => {
-    switch (priority?.toLowerCase()) {
-      case 'high':
-        return 'bg-red-100 dark:bg-red-900 text-red-800 dark:text-red-300 border-red-300 dark:border-red-700';
-      case 'low':
-        return 'bg-green-100 dark:bg-green-900 text-green-800 dark:text-green-300 border-green-300 dark:border-green-700';
-      case 'medium':
-      default:
-        return 'bg-yellow-100 dark:bg-yellow-900 text-yellow-800 dark:text-yellow-300 border-yellow-300 dark:border-yellow-700';
-    }
-  };
-
   if (isEditing && !isOverlay) {
     return (
       <div
         ref={taskRef}
         style={style}
-        className="bg-white dark:bg-gray-800 p-3 rounded-md shadow-sm border border-gray-200 dark:border-gray-700"
+        className="bg-white p-3 rounded-md shadow-sm border border-gray-200"
       >
         <div className="space-y-3">
           <input
             type="text"
             value={title}
             onChange={(e) => setTitle(e.target.value)}
-            className="w-full px-2 py-1 text-sm border dark:border-gray-700 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 bg-white dark:bg-gray-700 text-gray-800 dark:text-white"
+            className="w-full px-2 py-1 text-sm border rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
             placeholder="Task title"
           />
           <textarea
             value={description}
             onChange={(e) => setDescription(e.target.value)}
-            className="w-full px-2 py-1 text-sm border dark:border-gray-700 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 bg-white dark:bg-gray-700 text-gray-800 dark:text-white"
+            className="w-full px-2 py-1 text-sm border rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
             placeholder="Add a description..."
             rows={2}
           />
-          <div className="grid grid-cols-2 gap-2">
-            <div className="flex flex-col space-y-1">
-              <label htmlFor="dueDate" className="text-xs text-gray-600 font-medium">
-                Due Date
-              </label>
-              <input
-                id="dueDate"
-                type="date"
-                value={dueDate}
-                onChange={(e) => setDueDate(e.target.value)}
-                className="w-full px-2 py-1 text-sm border dark:border-gray-700 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 bg-white dark:bg-gray-700 text-gray-800 dark:text-white"
-              />
-            </div>
-            <div className="flex flex-col space-y-1">
-              <label htmlFor="priority" className="text-xs text-gray-600 font-medium">
-                Priority
-              </label>
-              <select
-                id="priority"
-                value={priority}
-                onChange={(e) => setPriority(e.target.value)}
-                className="w-full px-2 py-1 text-sm border dark:border-gray-700 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 bg-white dark:bg-gray-700 text-gray-800 dark:text-white"
-              >
-                <option value="low">Low</option>
-                <option value="medium">Medium</option>
-                <option value="high">High</option>
-              </select>
-            </div>
+          <div className="flex flex-col space-y-1">
+            <label htmlFor="dueDate" className="text-xs text-gray-600 font-medium">
+              Due Date
+            </label>
+            <input
+              id="dueDate"
+              type="date"
+              value={dueDate}
+              onChange={(e) => setDueDate(e.target.value)}
+              className="w-full px-2 py-1 text-sm border rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+            />
           </div>
           <div className="flex justify-end space-x-2">
             <button
@@ -283,14 +250,13 @@ export default function TaskCard({ task: initialTask, isOverlay = false, onDelet
 
   return (
     <div
-      id={`task-${task.id}`}
       ref={taskRef}
       style={style}
       className={`
         p-3 rounded-lg shadow-sm cursor-grab transition-all duration-200
         ${task.is_completed 
-          ? "bg-green-50 dark:bg-green-900/30 border-l-4 border-green-500 border-t border-r border-b border-green-200 dark:border-green-800" 
-          : "bg-white dark:bg-gray-800 border-l-4 border-blue-400 dark:border-blue-600 border-t border-r border-b border-gray-200 dark:border-gray-700 hover:border-blue-300 dark:hover:border-blue-500"}
+          ? "bg-green-50 border-l-4 border-green-500 border-t border-r border-b border-green-200" 
+          : "bg-white border-l-4 border-blue-400 border-t border-r border-b border-gray-200 hover:border-blue-300"}
         ${isOverlay ? "shadow-lg opacity-90" : "hover:shadow-md"}
       `}
       {...attributes}
@@ -299,16 +265,11 @@ export default function TaskCard({ task: initialTask, isOverlay = false, onDelet
     >
       <div className="flex justify-between items-start">
         <div className="flex-1 mr-2">
-          <div className="flex items-center space-x-2 mb-1">
-            <h3 className={`text-sm font-medium ${task.is_completed ? "line-through text-gray-500 dark:text-gray-400" : "text-gray-800 dark:text-white"}`}>
-              {task.title}
-            </h3>
-            <span className={`text-xs px-2 py-0.5 rounded-full ${getPriorityColor(task.priority || 'medium')}`}>
-              {task.priority || 'Medium'}
-            </span>
-          </div>
+          <h3 className={`text-sm font-medium mb-1 ${task.is_completed ? "line-through text-gray-500" : "text-gray-800"}`}>
+            {task.title}
+          </h3>
           {task.description && (
-            <p className="text-xs text-gray-600 dark:text-gray-400 line-clamp-2 mt-1">
+            <p className="text-xs text-gray-600 line-clamp-2 mt-1">
               {task.description}
             </p>
           )}
@@ -324,8 +285,8 @@ export default function TaskCard({ task: initialTask, isOverlay = false, onDelet
               className={`
                 p-2 rounded-full transition-all duration-200
                 ${task.is_completed 
-                  ? "bg-green-100 dark:bg-green-900 text-green-600 dark:text-green-400 hover:bg-green-200 dark:hover:bg-green-800" 
-                  : "bg-gray-100 dark:bg-gray-700 text-gray-400 dark:text-gray-500 hover:bg-blue-100 dark:hover:bg-blue-900 hover:text-blue-600 dark:hover:text-blue-400"}
+                  ? "bg-green-100 text-green-600 hover:bg-green-200" 
+                  : "bg-gray-100 text-gray-400 hover:bg-blue-100 hover:text-blue-600"}
               `}
               disabled={isLoading}
               title={task.is_completed ? "Mark as incomplete" : "Mark as complete"}
@@ -347,7 +308,7 @@ export default function TaskCard({ task: initialTask, isOverlay = false, onDelet
                 e.stopPropagation();
                 sendEmailNotification();
               }}
-              className="p-2 bg-gray-100 dark:bg-gray-700 text-gray-400 dark:text-gray-500 hover:bg-blue-100 dark:hover:bg-blue-900 hover:text-blue-600 dark:hover:text-blue-400 rounded-full transition-all duration-200"
+              className="p-2 bg-gray-100 text-gray-400 hover:bg-blue-100 hover:text-blue-600 rounded-full transition-all duration-200"
               disabled={isLoading}
               title="Send email notification"
             >
@@ -362,7 +323,7 @@ export default function TaskCard({ task: initialTask, isOverlay = false, onDelet
                 e.stopPropagation();
                 handleDelete();
               }}
-              className="p-2 bg-gray-100 dark:bg-gray-700 text-gray-400 dark:text-gray-500 hover:bg-red-100 dark:hover:bg-red-900 hover:text-red-600 dark:hover:text-red-400 rounded-full transition-all duration-200"
+              className="p-2 bg-gray-100 text-gray-400 hover:bg-red-100 hover:text-red-600 rounded-full transition-all duration-200"
               disabled={isLoading}
               title="Delete task"
             >
@@ -377,7 +338,7 @@ export default function TaskCard({ task: initialTask, isOverlay = false, onDelet
       </div>
       
       {task.due_date && (
-        <div className="mt-2 text-xs flex items-center text-gray-500 dark:text-gray-400">
+        <div className="mt-2 text-xs flex items-center text-gray-500">
           <svg xmlns="http://www.w3.org/2000/svg" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="mr-1">
             <rect x="3" y="4" width="18" height="18" rx="2" ry="2"></rect>
             <line x1="16" y1="2" x2="16" y2="6"></line>
@@ -388,7 +349,7 @@ export default function TaskCard({ task: initialTask, isOverlay = false, onDelet
         </div>
       )}
       
-      <div className="mt-2 text-xs text-gray-400 dark:text-gray-500">
+      <div className="mt-2 text-xs text-gray-400">
         ID: {task.id}
       </div>
     </div>

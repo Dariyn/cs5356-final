@@ -75,8 +75,7 @@ async function main() {
       column_id INTEGER NOT NULL REFERENCES columns(id) ON DELETE CASCADE,
       created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
       due_date TIMESTAMP,
-      is_completed BOOLEAN DEFAULT FALSE,
-      priority VARCHAR(20) DEFAULT 'medium'
+      is_completed BOOLEAN DEFAULT FALSE
     )`);
     
     console.log('Database schema pushed successfully!');
