@@ -11,7 +11,7 @@
     "db:start": "docker compose up -d",
     "db:stop": "docker compose down",
     "db:delete": "docker compose down -v",
-    "db:generate": "drizzle-kit generate:pg",
+    "db:generate": "drizzle-kit generate",
     "db:migrate": "drizzle-kit migrate",
     "db:push": "node ./scripts/db-push.js",
     "db:admin": "node ./scripts/db-admin.js",

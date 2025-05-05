@@ -24,12 +24,18 @@ export async function POST(req: NextRequest) {
     }
 
     const { name, email, password } = result.data;
-    const connectionString = process.env.POSTGRES_URL
-      || process.env.DATABASE_URL;
+    // Prioritize DATABASE_URL for Neon database connection
+    const connectionString = process.env.DATABASE_URL || process.env.POSTGRES_URL;
     if (!connectionString) throw new Error("Database URL missing");
 
+    console.log("Connecting to database...");
     const client = new Client({ connectionString });
-    await client.connect();
+    try {
+      await client.connect();
+    } catch (error) {
+      console.error("Database connection error:", error);
+      throw new Error(`Failed to connect to database: ${(error as Error).message}`);
+    }
 
     const { rows } = await client.query(
       'SELECT 1 FROM users WHERE email = $1',
@@ -58,8 +64,27 @@ export async function POST(req: NextRequest) {
 
   } catch (err) {
     console.error("Registration error:", err);
+    
+    // Provide more detailed error information
+    let errorMessage = "Something went wrong";
+    let details = (err as Error).message;
+    
+    // Check for specific error types
+    if (details.includes("duplicate key")) {
+      errorMessage = "Email already in use";
+      return NextResponse.json(
+        { message: errorMessage, error: details },
+        { status: 409 }
+      );
+    }
+    
+    // Database connection errors
+    if (details.includes("connect") || details.includes("connection")) {
+      errorMessage = "Database connection error";
+    }
+    
     return NextResponse.json(
-      { message: "Something went wrong", error: (err as Error).message },
+      { message: errorMessage, error: details },
       { status: 500 }
     );
   }

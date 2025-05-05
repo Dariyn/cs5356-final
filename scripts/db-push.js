@@ -1,13 +1,35 @@
 // This script pushes the schema to the database directly
 import pkg from 'pg';
 const { Client } = pkg;
-import 'dotenv/config';
+import * as dotenv from 'dotenv';
+import { fileURLToPath } from 'url';
+import { dirname, resolve } from 'path';
+import { existsSync } from 'fs';
+
+// Get the directory name of the current module
+const __filename = fileURLToPath(import.meta.url);
+const __dirname = dirname(__filename);
+
+// Load environment variables from .env.local file
+const envPath = resolve(__dirname, '../.env.local');
+if (existsSync(envPath)) {
+  console.log(`Loading environment variables from ${envPath}`);
+  dotenv.config({ path: envPath });
+} else {
+  console.log('No .env.local file found, using default environment variables');
+  dotenv.config();
+}
 
 console.log('Pushing schema to database...');
 
-// Set the connection string directly
-const connectionString = 'postgres://postgres:postgres@localhost:5432/kanban';
-console.log('Using database URL:', connectionString);
+// Get the connection string from environment variables
+const connectionString = process.env.DATABASE_URL;
+if (!connectionString) {
+  console.error('Error: DATABASE_URL environment variable is not set');
+  console.error('Please make sure your .env.local file contains DATABASE_URL');
+  process.exit(1);
+}
+console.log('Using Neon database connection');
 
 async function main() {
   const client = new Client({

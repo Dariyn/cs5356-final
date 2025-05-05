@@ -1,11 +1,11 @@
 import type { Config } from 'drizzle-kit';
 
-// Add a ts-expect-error comment to suppress the type error
-// @ts-expect-error - Drizzle-kit config type mismatch
+// Use type assertion to work around type mismatches in drizzle-kit
 export default {
   schema: './src/lib/db/schema.ts',
   out: './drizzle',
   driver: 'pg',
+  dialect: 'postgresql',
   dbCredentials: {
     connectionString: process.env.DATABASE_URL || '',
   },
