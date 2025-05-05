@@ -17,7 +17,6 @@ import {
 import { SortableContext, horizontalListSortingStrategy } from "@dnd-kit/sortable";
 import TaskCard from "@/components/task-card";
 import ColumnContainer from "@/components/column-container";
-import CreateColumnButton from "@/components/create-column-button";
 
 // Add interfaces to handle PostgreSQL snake_case field names
 export interface BoardWithColumns {
@@ -414,8 +413,6 @@ export default function BoardColumns({ board }: BoardColumnsProps) {
             />
           ))}
         </SortableContext>
-        
-        <CreateColumnButton boardId={board.id} />
         
         <DragOverlay>
           {activeColumn && (
