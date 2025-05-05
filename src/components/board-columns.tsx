@@ -171,62 +171,45 @@ export default function BoardColumns({ board }: BoardColumnsProps) {
           return prevColumns;
         }
         
-        // Create a new array of columns
-        const newColumns = [...prevColumns];
-        
-        // Get the task to move (we know it exists from checks above)
-        const task = {...newColumns[sourceColumnIndex].tasks[taskIndex]};
-        
         // Find the target column index
-        const targetColumnIndex = newColumns.findIndex(col => col.id === newColumnId);
+        const targetColumnIndex = prevColumns.findIndex(col => col.id === newColumnId);
         
         // If target column doesn't exist, return original columns
         if (targetColumnIndex === -1) {
           return prevColumns;
         }
         
+        // If source and target are the same, no changes needed
+        if (sourceColumnIndex === targetColumnIndex) {
+          return prevColumns;
+        }
+        
+        // Create a deep copy of the columns array to avoid mutation issues
+        const newColumns = JSON.parse(JSON.stringify(prevColumns));
+        
+        // Get the task to move
+        const taskToMove = newColumns[sourceColumnIndex].tasks[taskIndex];
+        
         // Remove the task from the source column
         newColumns[sourceColumnIndex].tasks.splice(taskIndex, 1);
         
         // Update positions in the source column
-        newColumns[sourceColumnIndex].tasks = newColumns[sourceColumnIndex].tasks.map((t, index) => ({
+        newColumns[sourceColumnIndex].tasks = newColumns[sourceColumnIndex].tasks.map((t: Task, index: number) => ({
           ...t,
           position: index
         }));
         
-        // Add the task to the target column at the end
-        const newPosition = newColumns[targetColumnIndex].tasks.length;
-        task.column_id = newColumnId;
-        task.position = newPosition;
-        
-        newColumns[targetColumnIndex].tasks.push(task);
-        
-        // Create a new task with updated column_id
+        // Update the task with new column_id and position
         const updatedTask = {
-          ...task,
-          column_id: newColumnId
+          ...taskToMove,
+          column_id: newColumnId,
+          position: newColumns[targetColumnIndex].tasks.length
         };
         
-        // Remove task from source column
-        newColumns[sourceColumnIndex] = {
-          ...newColumns[sourceColumnIndex],
-          tasks: [
-            ...newColumns[sourceColumnIndex].tasks.slice(0, taskIndex),
-            ...newColumns[sourceColumnIndex].tasks.slice(taskIndex + 1)
-          ]
-        };
+        // Add the task to the target column
+        newColumns[targetColumnIndex].tasks.push(updatedTask);
         
-        // Find destination column
-        const destColumnIndex = newColumns.findIndex(col => col.id === newColumnId);
-        
-        // If destination column exists, add the task to it
-        if (destColumnIndex !== -1) {
-          newColumns[destColumnIndex] = {
-            ...newColumns[destColumnIndex],
-            tasks: [...newColumns[destColumnIndex].tasks, updatedTask]
-          };
-        }
-        
+        // Return the updated columns
         return newColumns;
       });
     }
@@ -311,17 +294,38 @@ export default function BoardColumns({ board }: BoardColumnsProps) {
       const taskId = parseInt(activeId);
       const newColumnId = parseInt(overId.replace("column-", ""));
       
-      try {
-        // Find the task's new position in the destination column
-        let taskPosition = -1;
+      // Find the source column (where the task was before)
+      let sourceColumnId = null;
+      for (const column of board.columns) {
+        if (column.tasks.some(t => t.id === taskId)) {
+          sourceColumnId = column.id;
+          break;
+        }
+      }
+      
+      // If we can't find the source column in original board data, look in current state
+      if (sourceColumnId === null) {
         for (const column of columns) {
-          if (column.id === newColumnId) {
-            const taskIndex = column.tasks.findIndex(t => t.id === taskId);
-            if (taskIndex !== -1) {
-              taskPosition = taskIndex;
-            }
+          const found = column.tasks.some(t => t.id === taskId);
+          if (found && column.id !== newColumnId) {
+            sourceColumnId = column.id;
             break;
           }
+        }
+      }
+      
+      if (sourceColumnId === newColumnId) {
+        // Task is already in the target column, no need to move
+        return;
+      }
+      
+      try {
+        // Find the task's position in destination column
+        let taskPosition = 0;
+        const targetColumn = columns.find(col => col.id === newColumnId);
+        if (targetColumn) {
+          taskPosition = targetColumn.tasks.length - 1;
+          if (taskPosition < 0) taskPosition = 0;
         }
         
         // Update the task in the database
@@ -344,7 +348,7 @@ export default function BoardColumns({ board }: BoardColumnsProps) {
       } catch (error) {
         console.error("Error moving task:", error);
         toast.error("Failed to move task");
-        // We should refresh to get the latest state
+        // Refresh to get consistent state
         router.refresh();
       }
     }
@@ -376,62 +380,53 @@ export default function BoardColumns({ board }: BoardColumnsProps) {
         if (sourceColumnId !== null && targetColumnId !== null) break;
       }
       
-      if (sourceColumnId === targetColumnId && sourceIndex !== -1 && targetIndex !== -1) {
-        // Reordering within the same column
-        setColumns(columns => {
-          return columns.map(column => {
-            if (column.id === sourceColumnId) {
-              const newTasks = [...column.tasks];
-              const [movedTask] = newTasks.splice(sourceIndex, 1);
-              newTasks.splice(targetIndex, 0, movedTask);
-              
-              // Update positions
-              const updatedTasks = newTasks.map((task, index) => ({
-                ...task,
-                position: index,
-              }));
-              
-              return { ...column, tasks: updatedTasks };
-            }
-            return column;
-          });
+      // Only handle reordering if both tasks are in the same column
+      if (sourceColumnId === targetColumnId && sourceColumnId !== null && 
+          sourceIndex !== -1 && targetIndex !== -1) {
+        
+        // Create a new state update for columns
+        setColumns(prevColumns => {
+          // Create a deep copy to avoid mutation issues
+          const newColumns = JSON.parse(JSON.stringify(prevColumns));
+          
+          // Find the column to update
+          const columnIndex = newColumns.findIndex((c: ColumnWithTasks) => c.id === sourceColumnId);
+          if (columnIndex === -1) return prevColumns;
+          
+          // Get the column and move the task
+          const column = newColumns[columnIndex];
+          const [movedTask] = column.tasks.splice(sourceIndex, 1);
+          column.tasks.splice(targetIndex, 0, movedTask);
+          
+          // Update positions
+          column.tasks = column.tasks.map((t: Task, idx: number) => ({
+            ...t,
+            position: idx
+          }));
+          
+          return newColumns;
         });
         
-        console.log(`Reordering tasks within column ${sourceColumnId}...`);
-        
         try {
-          // Find the source column with the updated task order
-          const sourceColumn = columns.find(col => col.id === sourceColumnId);
-          if (!sourceColumn) throw new Error("Source column not found");
+          // Get the task positions after reordering
+          const columnToUpdate = columns.find(c => c.id === sourceColumnId);
+          if (!columnToUpdate) throw new Error("Column not found");
           
-          // Get the updated task positions
-          let updatedTasks: { id: number; position: number }[] = [];
-          setColumns(columns => {
-            const updatedColumns = columns.map(column => {
-              if (column.id === sourceColumnId) {
-                const newTasks = [...column.tasks];
-                const [movedTask] = newTasks.splice(sourceIndex, 1);
-                newTasks.splice(targetIndex, 0, movedTask);
-                
-                // Update positions
-                updatedTasks = newTasks.map((task, index) => ({
-                  id: task.id,
-                  position: index,
-                }));
-                
-                return {
-                  ...column,
-                  tasks: newTasks.map((task, index) => ({
-                    ...task,
-                    position: index,
-                  })),
-                };
-              }
-              return column;
-            });
-            
-            return updatedColumns;
-          });
+          // Create task position updates
+          const taskIds = columnToUpdate.tasks.map(t => t.id);
+          
+          // Move the active task id
+          const fromIndex = taskIds.indexOf(taskId);
+          if (fromIndex !== -1) {
+            taskIds.splice(fromIndex, 1);
+            const toIndex = Math.min(targetIndex, taskIds.length);
+            taskIds.splice(toIndex, 0, taskId);
+          }
+          
+          const taskPositions = taskIds.map((id, index) => ({
+            id,
+            position: index
+          }));
           
           // Update task positions in the database
           const response = await fetch(`/api/columns/${sourceColumnId}/tasks/reorder`, {
@@ -440,7 +435,7 @@ export default function BoardColumns({ board }: BoardColumnsProps) {
               "Content-Type": "application/json",
             },
             body: JSON.stringify({
-              tasks: updatedTasks,
+              tasks: taskPositions
             }),
           });
           
@@ -452,7 +447,7 @@ export default function BoardColumns({ board }: BoardColumnsProps) {
         } catch (error) {
           console.error("Error updating task positions:", error);
           toast.error("Failed to update task order");
-          // Refresh to get the latest state
+          // Refresh to get consistent state
           router.refresh();
         }
       }
