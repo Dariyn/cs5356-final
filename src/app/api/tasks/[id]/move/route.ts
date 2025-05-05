@@ -54,12 +54,24 @@ export async function PATCH(request: NextRequest) {
     console.log(`Moving task ${taskId} to column ${columnIdInt}`);
 
     // Use a direct client connection to ensure transaction integrity
-    const connectionString = process.env.POSTGRES_URL || process.env.DATABASE_URL;
+    const connectionString = process.env.DATABASE_URL || process.env.POSTGRES_URL;
     if (!connectionString) {
       throw new Error("Database connection string is missing");
     }
     
-    const client = new Client({ connectionString });
+    // Add SSL configuration for Vercel deployment with Neon PostgreSQL
+    const isProduction = process.env.NODE_ENV === 'production';
+    const connectionConfig = {
+      connectionString,
+      ssl: isProduction ? { rejectUnauthorized: false } : false
+    };
+    
+    console.log("Connecting to database with config:", { 
+      connectionString: connectionString.substring(0, 20) + '...',
+      ssl: connectionConfig.ssl
+    });
+    
+    const client = new Client(connectionConfig);
     await client.connect();
     console.log("Connected to database for task move operation");
     
