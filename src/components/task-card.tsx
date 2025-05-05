@@ -22,9 +22,10 @@ interface TaskCardProps {
   task: Task;
   isOverlay?: boolean;
   onDelete?: (taskId: number) => void;
+  onUpdate?: (updatedTask: Task) => void;
 }
 
-export default function TaskCard({ task: initialTask, isOverlay = false, onDelete }: TaskCardProps) {
+export default function TaskCard({ task: initialTask, isOverlay = false, onDelete, onUpdate }: TaskCardProps) {
   const router = useRouter();
   const [isEditing, setIsEditing] = useState(false);
   const [title, setTitle] = useState(initialTask.title);
@@ -78,8 +79,19 @@ export default function TaskCard({ task: initialTask, isOverlay = false, onDelet
         throw new Error(data.message || "Failed to update task");
       }
       
+      // Get the updated task from the response
+      const data = await response.json();
+      const updatedTask = data.task;
+      
+      // Update the local state with the new task data
+      setTask(updatedTask);
+      
+      // If we have an onUpdate callback, call it to update the parent component
+      if (onUpdate) {
+        onUpdate(updatedTask);
+      }
+      
       toast.success("Task updated successfully");
-      router.refresh();
       setIsEditing(false);
     } catch (error) {
       console.error("Error updating task:", error);

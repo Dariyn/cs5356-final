@@ -224,6 +224,12 @@ export default function ColumnContainer({
                 // Remove the deleted task from the column's tasks
                 setColumnTasks(prevTasks => prevTasks.filter(t => t.id !== taskId));
               }}
+              onUpdate={(updatedTask) => {
+                // Update the task in the column's tasks
+                setColumnTasks(prevTasks => 
+                  prevTasks.map(t => t.id === updatedTask.id ? updatedTask : t)
+                );
+              }}
             />
           ))}
         </SortableContext>
