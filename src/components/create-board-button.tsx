@@ -65,17 +65,17 @@ export default function CreateBoardButton({
         onClick={() => setIsModalOpen(true)}
         className={`px-4 py-2 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 ${
           variant === "primary"
-            ? "bg-blue-600 text-white hover:bg-blue-700"
-            : "bg-white border border-gray-300 text-gray-800 hover:bg-gray-50"
-        }`}
+            ? "bg-blue-600 text-white hover:bg-blue-700 shadow-md"
+            : "bg-white border border-gray-300 text-gray-800 hover:bg-gray-50 shadow-sm"
+        } transition-all duration-200`}
       >
         Create Board
       </button>
 
       {isModalOpen && (
-        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center p-4 z-50">
-          <div className="bg-white rounded-lg shadow-xl max-w-md w-full p-6">
-            <h2 className="text-xl font-bold mb-4">Create New Board</h2>
+        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center p-4 z-50 backdrop-blur-sm">
+          <div className="bg-white rounded-lg shadow-xl max-w-md w-full p-6 border border-gray-200">
+            <h2 className="text-xl font-bold mb-4 text-gray-800">Create New Board</h2>
             <form onSubmit={handleCreateBoard}>
               <div className="mb-4">
                 <label 
@@ -89,7 +89,7 @@ export default function CreateBoardButton({
                   type="text"
                   value={boardName}
                   onChange={(e) => setBoardName(e.target.value)}
-                  className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 text-gray-800"
+                  className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 text-gray-800 shadow-sm"
                   placeholder="Enter board name"
                   required
                 />
@@ -105,7 +105,7 @@ export default function CreateBoardButton({
                   id="boardDescription"
                   value={boardDescription}
                   onChange={(e) => setBoardDescription(e.target.value)}
-                  className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 text-gray-800"
+                  className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 text-gray-800 shadow-sm"
                   placeholder="Enter board description"
                   rows={3}
                 />
@@ -114,16 +114,16 @@ export default function CreateBoardButton({
                 <button
                   type="button"
                   onClick={() => setIsModalOpen(false)}
-                  className="px-4 py-2 border border-gray-300 rounded-md text-gray-800 hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2"
+                  className="px-4 py-2 border border-gray-300 rounded-md text-gray-800 hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 shadow-sm transition-all duration-200"
                 >
                   Cancel
                 </button>
                 <button
                   type="submit"
                   disabled={isLoading}
-                  className="px-4 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 disabled:opacity-50 disabled:cursor-not-allowed"
+                  className="px-4 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 disabled:opacity-50 disabled:cursor-not-allowed shadow-md transition-all duration-200"
                 >
-                  {isLoading ? "Creating..." : "Create Board"}
+                  {isLoading ? "Creating..." : "Create Board"}  
                 </button>
               </div>
             </form>
