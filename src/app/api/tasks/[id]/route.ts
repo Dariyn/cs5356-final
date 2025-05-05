@@ -10,10 +10,7 @@ export const dynamic = 'force-dynamic';
 export const revalidate = 0;
 
 // Handler for updating a task (PATCH)
-export async function PATCH(
-  request: NextRequest,
-  { params }: { params: { id: string } }
-) {
+export async function PATCH(request: NextRequest) {
   try {
     const session = await getServerSession(authOptions);
     
@@ -24,8 +21,11 @@ export async function PATCH(
       );
     }
 
-    // Use destructuring to access id properly
-    const { id } = params;
+    // Extract the ID from the URL path
+    const url = new URL(request.url);
+    const pathSegments = url.pathname.split('/');
+    const idIndex = pathSegments.findIndex(segment => segment === 'tasks') + 1;
+    const id = pathSegments[idIndex] || '';
     const taskId = parseInt(id);
     
     if (isNaN(taskId)) {
@@ -128,10 +128,7 @@ export async function PATCH(
 }
 
 // Handler for deleting a task (DELETE)
-export async function DELETE(
-  request: NextRequest,
-  { params }: { params: { id: string } }
-) {
+export async function DELETE(request: NextRequest) {
   try {
     const session = await getServerSession(authOptions);
     
@@ -142,8 +139,11 @@ export async function DELETE(
       );
     }
 
-    // Use destructuring to access id properly
-    const { id } = params;
+    // Extract the ID from the URL path
+    const url = new URL(request.url);
+    const pathSegments = url.pathname.split('/');
+    const idIndex = pathSegments.findIndex(segment => segment === 'tasks') + 1;
+    const id = pathSegments[idIndex] || '';
     const taskId = parseInt(id);
     
     if (isNaN(taskId)) {
